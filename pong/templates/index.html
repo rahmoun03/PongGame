@@ -1,0 +1,25 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% block style_src %}{% static 'pong/css/style.css' %}{% endblock %}
+
+{% block title %}PongGame{% endblock  %}
+
+{% block content %}
+    
+    <div id="menu">
+        <h1>Pong Game</h1>
+        <p>Select Difficulty:</p>
+        <button class="difficultyBtn" data-speed="1">Easy</button>
+        <button class="difficultyBtn" data-speed="3">Medium</button>
+        <button class="difficultyBtn" data-speed="5">Hard</button>
+        <button id="startBT">Start Game</button>
+    </div>
+
+    <canvas id="pongCanvas" style="display: none;"></canvas>
+    <script src="{% static 'pong/js/script.js' %}"></script>
+
+    <footer>
+        create by ayoub rahmoun &#169
+    </footer>
+{% endblock %}
