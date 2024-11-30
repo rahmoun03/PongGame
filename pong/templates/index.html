@@ -6,16 +6,11 @@
 {% block title %}PongGame{% endblock  %}
 
 {% block content %}
-    
     <div id="menu">
-        <h1>Pong Game</h1>
-        <p>Select Difficulty:</p>
-        <button class="difficultyBtn" data-speed="1">Easy</button>
-        <button class="difficultyBtn" data-speed="3">Medium</button>
-        <button class="difficultyBtn" data-speed="5">Hard</button>
-        <button id="startBT">Start Game</button>
+        <h1 id="gameTitle">Pong Game</h1>
+        <button id="classic">Classic Mode</button>
+        <button id="multiplayer">Online Multiplayer</button>
     </div>
-
     <canvas id="pongCanvas" style="display: none;"></canvas>
     <script src="{% static 'pong/js/script.js' %}"></script>
 
