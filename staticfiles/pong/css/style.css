@@ -1,5 +1,5 @@
 body {
-    background: radial-gradient(circle, #222, #111);
+    background: radial-gradient(circle, #141414, #444444);
     overflow: hidden;
 }
 
@@ -67,7 +67,7 @@ body::before {
     position: absolute;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle at 20% 20%, #ff5722, transparent, #111);
+    background: radial-gradient(circle at 20% 20%, #ff5722, transparent, #444444);
     animation: gradientMove 10s infinite alternate;
     z-index: -1;
 }

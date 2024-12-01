@@ -145,7 +145,7 @@ function endGame(winner) {
 function resizeCanvas() {
     const aspectRatio = 800 / 400; // Original width/height ratio
     const maxWidth = window.innerWidth * 0.8; // Use 80% of screen width
-    const maxHeight = window.innerHeight * 0.6; // Use 60% of screen height
+    const maxHeight = window.innerHeight * 0.4; // Use 60% of screen height
 
     if (maxWidth / aspectRatio <= maxHeight) {
         canvas.width = maxWidth;

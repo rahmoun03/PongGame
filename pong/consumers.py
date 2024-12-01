@@ -1,9 +1,11 @@
 import json
 import random
+import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 class PongConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        self.is_active = True
         self.width = 800
         self.height = 400
         self.speed = 3
@@ -18,6 +20,7 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         # Leave room group
+        self.is_active = False
         pass
 
 
@@ -33,18 +36,31 @@ class PongConsumer(AsyncWebsocketConsumer):
             self.width = data["width"]
             self.height = data["height"]
             self.reset_game()
-            await self.start_game()
+            if self.mode == "Classic":
+                await self.start_game()
 
         if data["type"] == "update_paddle":
             self.players["player1"]["playerDirection"] = data["playerDirection"]
-            print("ask for : ", self.mode)
-            if self.mode == "Classic":
-                self.update_game()
-                await self.send_game_state()
+            # print("ask for : ", self.mode)
+            # self.update_game()
+            # await self.send_game_state()
 
     
+    async def game_loop(self):
+        while True:
+            self.update_game()
+            if self.score["player1"] >= self.scoreLimit or self.score["player2"] >= self.scoreLimit or self.is_active == False:
+                print("GAME OVER!\n")
+                if self.is_active :
+                    await self.send_game_over()
+                break
+            else :
+                await self.send_game_state()
+            await asyncio.sleep(0.016)  # Adjust the delay as needed
+    
+
     def reset_game(self):
-        self.scoreLimit = 5
+        self.scoreLimit = 3
 
         self.ball = {
             "x": self.width / 2,
@@ -142,6 +158,7 @@ class PongConsumer(AsyncWebsocketConsumer):
             self.score["player1"] += 1
             self.reset_ball()
         
+
         # check for Game Over
         # if self.score["player1"] >= self.scoreLimit or self.score["player2"] >= self.scoreLimit : 
 
@@ -149,29 +166,29 @@ class PongConsumer(AsyncWebsocketConsumer):
         self.ball["x"] = self.width / 2
         self.ball["y"] = self.height / 2
 
-        self.ball["dx"] = 3
-        self.ball["dy"] = 3
+        self.ball["dx"] = 3 if random.randint(0,1) > 0.5 else -3
+        self.ball["dy"] = 3 if random.randint(0,1) > 0.5 else -3
 
+    async def send_game_over(self):
+        print("SEND GAME OVER")
+        await self.send(text_data=json.dumps({
+            "type": "game_over",
+            "score": self.score,
+            "winner": "YOU" if self.score["player1"] >= self.scoreLimit else "AI"
+        }))
+        self.reset_game()
 
     # Receive message from room group
     async def send_game_state(self):
 
         # Send message to WebSocket
-        if self.score["player1"] >= self.scoreLimit or self.score["player2"] >= self.scoreLimit :
-            await self.send(text_data=json.dumps({
-                "type": "game_over",
-                "score": self.score,
-                "winner": "YOU" if self.score["player1"] >= self.scoreLimit else "AI"
-            }))
-
-        else :
-            print("sending game update", self.players , self.ball)
-            await self.send(text_data=json.dumps({
-                "type": "update",
-                "players": self.players,
-                "ball": self.ball,
-                "score": self.score
-            }))
+        print("sending game update", self.players , self.ball, self.score)
+        await self.send(text_data=json.dumps({
+            "type": "update",
+            "players": self.players,
+            "ball": self.ball,
+            "score": self.score
+        }))
 
     async def start_game(self):
 
@@ -182,3 +199,5 @@ class PongConsumer(AsyncWebsocketConsumer):
             "score": self.score,
             "paddle": self.paddleSize
         }))
+
+        asyncio.create_task(self.game_loop())

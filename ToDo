@@ -12,4 +12,9 @@ TODO
 
 TODO
 
-TODO
+TODO AI Improvement:
+
+    Experiment with different AI strategies, such as:
+        Predicting the ball's trajectory based on its current velocity and angle.
+        Adapting the AI's difficulty level based on the player's skill level.
+        Implementing learning algorithms to improve the AI's performance over time.
