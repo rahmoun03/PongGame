@@ -66,7 +66,7 @@ socket.onmessage = (e) => {
 		player2 = data.players["player2"];
 		score = data.score;
 		paddle = data.paddle
-		loop();
+		
     }
     if (data.type === "update") {
 		ball = data.ball;
@@ -107,16 +107,23 @@ function startGame(mode) {
 	selectedMode = mode;
 	resizeCanvas();
 	socket.send(JSON.stringify({ 
-		type: "start_game",
+		type: "countdown",
 		mode: mode,
 		width: canvas.width,
 		height: canvas.height
 	}));
+
+	startCountdown(() => {
+        loop(); // Start the game loop after the countdown
+		socket.send(JSON.stringify({ 
+			type: "start_game",
+		}));
+    });
 }
 
 
 function movePaddle(e)
-{   
+{
 	if(e.key === 'ArrowUp') playerDirection = -1;
 	if(e.key === 'ArrowDown') playerDirection = 1;
 }
@@ -154,6 +161,24 @@ function resizeCanvas() {
         canvas.height = maxHeight;
         canvas.width = maxHeight * aspectRatio;
     }
+}
+
+function startCountdown(callback) {
+    let countdown = 3; // Start at 3
+    const interval = setInterval(() => {
+        draw(); // Redraw background and paddles
+        ctx.fillStyle = "white";
+        ctx.font = "80px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(countdown > 0 ? countdown : "GO!", canvas.width / 2, canvas.height / 2);
+
+        if (countdown === 0) {
+            clearInterval(interval);
+            callback(); // Call the game loop when countdown ends
+        }
+
+        countdown--;
+    }, 1000); // 1 second interval
 }
 
 

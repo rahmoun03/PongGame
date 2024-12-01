@@ -31,13 +31,22 @@ class PongConsumer(AsyncWebsocketConsumer):
         # print("data : ", data)
 
         if data["type"] == "start_game":
-            print("data : ", data["mode"])
+            if self.mode == "Classic":
+                await self.start_game()
+
+        if data["type"] == "countdown":
+            print("start_countdown")
             self.mode = data["mode"]
             self.width = data["width"]
             self.height = data["height"]
             self.reset_game()
-            if self.mode == "Classic":
-                await self.start_game()
+            await self.send(text_data=json.dumps({
+                "type": "start",
+                "players": self.players,
+                "ball": self.ball,
+                "score": self.score,
+                "paddle": self.paddleSize
+            }))
 
         if data["type"] == "update_paddle":
             self.players["player1"]["playerDirection"] = data["playerDirection"]
@@ -191,7 +200,6 @@ class PongConsumer(AsyncWebsocketConsumer):
         }))
 
     async def start_game(self):
-
         await self.send(text_data=json.dumps({
             "type": "start",
             "players": self.players,
@@ -199,5 +207,4 @@ class PongConsumer(AsyncWebsocketConsumer):
             "score": self.score,
             "paddle": self.paddleSize
         }))
-
         asyncio.create_task(self.game_loop())
