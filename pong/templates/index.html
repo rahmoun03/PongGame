@@ -11,6 +11,14 @@
         <button id="classic">Classic Mode</button>
         <button id="multiplayer">Online Multiplayer</button>
     </div>
+
+    {% comment %} waiting for opponent... {% endcomment %}
+    <div id="waiting" style="display: none;">
+        <p>Waiting for opponent...</p>
+        <div class="loader"></div>
+    </div>
+
+
     <canvas id="pongCanvas" style="display: none;"></canvas>
     <script src="{% static 'pong/js/script.js' %}"></script>
 

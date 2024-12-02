@@ -1,11 +1,13 @@
 const canvas = document.getElementById("pongCanvas");
 const menu = document.getElementById("menu");
 const ctx = canvas.getContext("2d");
+const waitingPage = document.getElementById("waiting");
 const URL = 'ws://'+window.location.host+'/ws/pong/';
 const socket = new WebSocket(URL);
 
 canvas.width = 800;
 canvas.height = 400;
+ let playerRole;
 
 // Ball setup
 let ball , player, player2, paddle, score, selectedMode, animationId;
@@ -60,13 +62,21 @@ socket.onmessage = (e) => {
     const data = JSON.parse(e.data);
 	console.log('data', data)
     if (data.type === "start") {
-        // Update ball or paddle positions
+		// Hide the waiting page and start the game
+		waitingPage.style.display = "none";
+		canvas.style.display = "block";
+		playerRole = data.player;
 		ball = data.ball;
 		player = data.players["player1"];
 		player2 = data.players["player2"];
 		score = data.score;
 		paddle = data.paddle
-		
+		startCountdown(() => {
+			loop(); // Start the game loop after the countdown
+			socket.send(JSON.stringify({ 
+				type: "start_game",
+			}));
+		});
     }
     if (data.type === "update") {
 		ball = data.ball;
@@ -90,7 +100,8 @@ function sendPaddlePosition() {
     socket.send(JSON.stringify({
         type: "update_paddle",
         playerDirection : playerDirection,
-		mode: selectedMode
+		mode: selectedMode,
+		player: playerRole
     }));
 }
 
@@ -102,23 +113,29 @@ document.getElementById("classic").addEventListener("click", () => startGame("Cl
 document.getElementById("multiplayer").addEventListener("click", () => startGame("Multiplayer"));
 
 function startGame(mode) {
-	canvas.style.display = 'block';
-	menu.style.display = 'none';
-	selectedMode = mode;
-	resizeCanvas();
-	socket.send(JSON.stringify({ 
-		type: "countdown",
-		mode: mode,
-		width: canvas.width,
-		height: canvas.height
-	}));
 
-	startCountdown(() => {
-        loop(); // Start the game loop after the countdown
+	if (mode === "Multiplayer") {
+        menu.style.display = "none";
+        waitingPage.style.display = "flex"; // Show waiting page
+
+        socket.send(JSON.stringify({
+            type: "join_multiplayer",
+            mode: mode,
+        }));
+    }
+	else if (mode === "Classic" ) {
+
+		canvas.style.display = 'block';
+		menu.style.display = 'none';
+		selectedMode = mode;
+		resizeCanvas();
 		socket.send(JSON.stringify({ 
-			type: "start_game",
+			type: "countdown",
+			mode: mode,
+			width: canvas.width,
+			height: canvas.height
 		}));
-    });
+	}
 }
 
 
@@ -165,24 +182,41 @@ function resizeCanvas() {
 
 function startCountdown(callback) {
     let countdown = 3; // Start at 3
+    let opacity = 1; // Initial opacity for fading effect
+    let scale = 1; // Initial scale for size animation
+
     const interval = setInterval(() => {
         draw(); // Redraw background and paddles
-        ctx.fillStyle = "white";
-        ctx.font = "80px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(countdown > 0 ? countdown : "GO!", canvas.width / 2, canvas.height / 2);
 
-        if (countdown === 0) {
-            clearInterval(interval);
-            callback(); // Call the game loop when countdown ends
+        // Save canvas state
+        ctx.save();
+        
+        // Set text properties
+        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`; // Fading effect
+        ctx.font = `${100 * scale}px Arial`; // Dynamic scaling
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        
+        // Render countdown or "GO!"
+        ctx.fillText(countdown > 0 ? countdown : "GO!", canvas.width / 2, canvas.height / 2);
+        
+        // Restore canvas state
+        ctx.restore();
+
+        // Update scaling and fading effects
+        scale += 0.1; // Gradually increase size
+        opacity -= 0.1; // Gradually fade out
+
+        // Reset effects for the next countdown
+        if (opacity <= 0) {
+            scale = 1; // Reset size
+            opacity = 1; // Reset opacity
+            countdown--; // Move to the next countdown value
         }
 
-        countdown--;
-    }, 1000); // 1 second interval
+        if (countdown < 0) {
+            clearInterval(interval); // Stop the interval
+            callback(); // Start the game loop
+        }
+    }, 60); // Short interval for smoother animations
 }
-
-
-// Call once initially
-
-
-// hello

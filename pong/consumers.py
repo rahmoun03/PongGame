@@ -3,8 +3,11 @@ import random
 import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 
+player_queue = []
+
 class PongConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        self.game_room = None
         self.is_active = True
         self.width = 800
         self.height = 400
@@ -21,7 +24,13 @@ class PongConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         # Leave room group
         self.is_active = False
-        pass
+        if self.game_room:
+            await self.channel_layer.group_discard(self.game_room, self.channel_name)
+                # Remove from queue if disconnected
+        if self in player_queue:
+            player_queue.remove(self)
+
+        
 
 
 
@@ -31,8 +40,45 @@ class PongConsumer(AsyncWebsocketConsumer):
         # print("data : ", data)
 
         if data["type"] == "start_game":
-            if self.mode == "Classic":
-                await self.start_game()
+            await self.start_game()
+
+        if  data["type"] == "join_multiplayer":
+            player_queue.append(self) # add player to queue
+            if len(player_queue) >= 2:  # If two players are available
+                # Get two players from the queue
+                player1 = player_queue.pop(0)
+                player2 = player_queue.pop(0)
+
+                room_name = "game_lobby"
+
+                #assing room and players
+                player1.game_room = room_name
+                player2.game_room = room_name
+
+                await self.channel_layer.group_add(room_name, player1.channel_name)
+                await self.channel_layer.group_add(room_name, player2.channel_name)
+
+                self.reset_game()
+                await player1.send(json.dumps({
+                    "type": "start",
+                    "player": "player1",
+                    "players": self.players,
+                    "ball": self.ball,
+                    "score": self.score,
+                    "paddle": self.paddleSize,
+                }))
+
+                await player2.send(json.dumps({
+                    "type": "start",
+                    "player": "player2",
+                    "players": self.players,
+                    "ball": self.ball,
+                    "score": self.score,
+                    "paddle": self.paddleSize,
+                }))
+                # asyncio.create_task(self.game_loop())
+
+
 
         if data["type"] == "countdown":
             print("start_countdown")
@@ -49,10 +95,14 @@ class PongConsumer(AsyncWebsocketConsumer):
             }))
 
         if data["type"] == "update_paddle":
-            self.players["player1"]["playerDirection"] = data["playerDirection"]
-            # print("ask for : ", self.mode)
-            # self.update_game()
-            # await self.send_game_state()
+            if(self.mode == "Classic"):
+                self.players["player1"]["playerDirection"] = data["playerDirection"]
+            elif self.mode == "Multiplayer":
+                if data["player"] == "player1":
+                    self.players["player1"]["playerDirection"] = data["playerDirection"]
+                elif data["player"] == "player2":
+                    self.players["player2"]["playerDirection"] = data["playerDirection"]
+
 
     
     async def game_loop(self):
@@ -95,24 +145,27 @@ class PongConsumer(AsyncWebsocketConsumer):
     def update_game(self):
         self.ball["x"] += self.ball["dx"]
         self.ball["y"] += self.ball["dy"]
-        self.move_player()
-        self.move_ai()
+        self.move_player1()
+        self.move_player2()
         self.check_collision()
         self.checkGoals()
 
 
 
-    def move_player(self):
+
+    def move_player1(self):
         self.players["player1"]["y"] += self.players["player1"]["playerDirection"] * self.speed
         
         if self.players["player1"]["y"] < 0 : self.players["player1"]["y"] = 0
         if self.players["player1"]["y"] > self.height - self.paddleSize["H"] : self.players["player1"]["y"] = self.height - self.paddleSize["H"]
 
-    def move_ai(self):
-        # Move AI paddle (simple tracking)
-        if self.ball["y"] > self.players["player2"]["y"] + self.paddleSize["H"] / 2 : self.players["player2"]["y"] += self.speed # Move down
-        if self.ball["y"] < self.players["player2"]["y"] + self.paddleSize["H"] / 2 : self.players["player2"]["y"] -= self.speed # Move up
-        
+    def move_player2(self):
+        if self.mode == "Classic":
+            # Move AI paddle (simple tracking)
+            if self.ball["y"] > self.players["player2"]["y"] + self.paddleSize["H"] / 2 : self.players["player2"]["y"] += self.speed # Move down
+            if self.ball["y"] < self.players["player2"]["y"] + self.paddleSize["H"] / 2 : self.players["player2"]["y"] -= self.speed # Move up
+        elif self.mode == "Multiplayer" :
+            self.players["player2"]["y"] += self.players["player2"]["playerDirection"] * self.speed
         if self.players["player2"]["y"] < 0 : self.players["player2"]["y"] = 0
         if self.players["player2"]["y"] > self.height - self.paddleSize["H"] : self.players["player2"]["y"] = self.height - self.paddleSize["H"]
 
@@ -180,31 +233,44 @@ class PongConsumer(AsyncWebsocketConsumer):
 
     async def send_game_over(self):
         print("SEND GAME OVER")
-        await self.send(text_data=json.dumps({
-            "type": "game_over",
-            "score": self.score,
-            "winner": "YOU" if self.score["player1"] >= self.scoreLimit else "AI"
-        }))
+        if self.mode == "Classic":
+            await self.send(text_data=json.dumps({
+                "type": "game_over",
+                "score": self.score,
+                "winner": "WIN" if self.score["player1"] >= self.scoreLimit else "LOSE"
+            }))
+        if self.mode == "Multiplayer":
+            await self.send(text_data=json.dumps({
+                "type": "game_over",
+                "score": self.score,
+                "winner": "WIN" if self.score["player1"] >= self.scoreLimit else "LOSE"
+            }))
         self.reset_game()
 
     # Receive message from room group
     async def send_game_state(self):
 
         # Send message to WebSocket
-        print("sending game update", self.players , self.ball, self.score)
-        await self.send(text_data=json.dumps({
-            "type": "update",
-            "players": self.players,
-            "ball": self.ball,
-            "score": self.score
-        }))
+        if self.mode == "Classic":
+            # print("sending game update", self.players , self.ball, self.score)
+            await self.send(text_data=json.dumps({
+                "type": "update",
+                "players": self.players,
+                "ball": self.ball,
+                "score": self.score
+            }))
+        elif "Multiplayer" :
+            await self.channels_layer.group_send(
+                self.game_room,{
+                "type": "update",
+                "players": self.players,
+                "ball": self.ball,
+                "score": self.score
+            })
+
+
+
 
     async def start_game(self):
-        await self.send(text_data=json.dumps({
-            "type": "start",
-            "players": self.players,
-            "ball": self.ball,
-            "score": self.score,
-            "paddle": self.paddleSize
-        }))
+        await self.send_game_state()
         asyncio.create_task(self.game_loop())

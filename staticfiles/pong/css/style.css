@@ -59,8 +59,30 @@ button:active {
         transform: translateY(-20px);
     }
 }
+#waiting {
+    height: 100vh;
+    place-items: center;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: gray;
+    color: white;
+    font-size: 24px;
+}
 
+.loader {
+    border: 8px solid #b4b4b4;
+    border-top: 8px solid white;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
 
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
 body::before {
     content: "";
