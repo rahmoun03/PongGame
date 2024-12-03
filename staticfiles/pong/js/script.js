@@ -7,7 +7,7 @@ const socket = new WebSocket(URL);
 
 canvas.width = 800;
 canvas.height = 400;
- let playerRole;
+let playerRole;
 
 // Ball setup
 let ball , player, player2, paddle, score, selectedMode, animationId;
@@ -65,7 +65,7 @@ socket.onmessage = (e) => {
 		// Hide the waiting page and start the game
 		waitingPage.style.display = "none";
 		canvas.style.display = "block";
-		playerRole = data.player;
+		playerRole = data.player_role;
 		ball = data.ball;
 		player = data.players["player1"];
 		player2 = data.players["player2"];
@@ -79,10 +79,22 @@ socket.onmessage = (e) => {
 		});
     }
     if (data.type === "update") {
-		ball = data.ball;
-		player = data.players["player1"];
-		player2 = data.players["player2"];
-		score = data.score;
+		// if(selectedMode === "Multiplayer")
+		// {
+		// 	let message = JSON.parse(data["message"]);
+		// 	ball = message.ball;
+		// 	player = message.players["player1"];
+		// 	player2 = message.players["player2"];
+		// 	score = message.score;
+
+		// }
+		// else if (selectedMode === "Classic"){
+
+			ball = data.ball;
+			player = data.players["player1"];
+			player2 = data.players["player2"];
+			score = data.score;
+		// }
 	}
     if (data.type === "game_over") {
 		score = data.score;
@@ -97,12 +109,22 @@ socket.onclose = () => {
 
 // Send paddle position to server
 function sendPaddlePosition() {
-    socket.send(JSON.stringify({
-        type: "update_paddle",
-        playerDirection : playerDirection,
-		mode: selectedMode,
-		player: playerRole
-    }));
+	if (selectedMode === "Multiplayer"){
+		console.log("send data for multiplayer mode : ", playerRole);
+		socket.send(JSON.stringify({
+			type: "update_paddle",
+			playerDirection : playerDirection,
+			mode: selectedMode,
+			player: playerRole
+		}));
+	}
+	else {
+		socket.send(JSON.stringify({
+			type: "update_paddle",
+			playerDirection : playerDirection,
+			mode: selectedMode,
+		}));
+	}
 }
 
 
@@ -117,6 +139,7 @@ function startGame(mode) {
 	if (mode === "Multiplayer") {
         menu.style.display = "none";
         waitingPage.style.display = "flex"; // Show waiting page
+		selectedMode = mode;
 
         socket.send(JSON.stringify({
             type: "join_multiplayer",
