@@ -3,26 +3,39 @@
 
 {% block style_src %}{% static 'pong/css/style.css' %}{% endblock %}
 
-{% block title %}PongGame{% endblock  %}
+{% block title %}PongGame{% endblock %}
 
 {% block content %}
     <div id="menu">
         <h1 id="gameTitle">Pong Game</h1>
-        <button id="classic">Classic Mode</button>
-        <button id="multiplayer">Online Multiplayer</button>
+
+        <button id="ai">AI Mode</button>
+        <div id="multiplayerMenu">
+            <button id="multiplayer">Multiplayer</button>
+            <div id="multiplayerOptions" style="display: none;">
+                <button id="onlineMultiplayer">Online</button>
+                <button id="localMultiplayer">Local</button>
+            </div>
+        </div>
+        <button id="tournament">Tournament Mode</button>
+        <button id="train">Train Mode</button>
     </div>
 
-    {% comment %} waiting for opponent... {% endcomment %}
+    {% comment %} Waiting for opponent section {% endcomment %}
     <div id="waiting" style="display: none;">
         <p>Waiting for opponent...</p>
         <div class="loader"></div>
     </div>
 
-
     <canvas id="pongCanvas" style="display: none;"></canvas>
     <script src="{% static 'pong/js/script.js' %}"></script>
+    <script src="{% static 'pong/js/ai.js' %}"></script>
+    <script src="{% static 'pong/js/online.js' %}"></script>
+    <script src="{% static 'pong/js/local.js' %}"></script>
+
+
 
     <footer>
-        create by ayoub rahmoun &#169
+        created by Ayoub Rahmoun &#169;
     </footer>
 {% endblock %}

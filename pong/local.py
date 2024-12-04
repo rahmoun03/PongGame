@@ -6,7 +6,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 player_queue = []
 
 
-class AIConsumer(AsyncWebsocketConsumer):
+class LocalConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.game_room = f"room_{random.randint(1, 999)}"
         self.is_active = True
@@ -19,9 +19,9 @@ class AIConsumer(AsyncWebsocketConsumer):
         self.paddleSize = {}
         self.players = {}
         self.score = {}
-
-        print("USER : " ,self.scope["user"])
         
+        print("USER : " ,self.scope["user"])
+        print(self.game_room)
         await self.channel_layer.group_add(self.game_room, self.channel_name)
         await self.accept()
     
@@ -52,9 +52,10 @@ class AIConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_send(self.game_room, {
                 "type" : "start"
             })
-
         if data["type"] == "update_paddle":
-            self.players["player1"]["playerDirection"] = data["playerDirection"]
+            self.players["player1"]["playerDirection"] = data["player1_Direction"]
+            self.players["player2"]["playerDirection"] = data["player2_Direction"]
+
 
 
 
@@ -115,9 +116,7 @@ class AIConsumer(AsyncWebsocketConsumer):
         if self.players["player1"]["y"] > self.height - self.paddleSize["H"] : self.players["player1"]["y"] = self.height - self.paddleSize["H"]
 
     def move_player2(self):
-        # Move AI paddle (simple tracking)
-        if self.ball["y"] > self.players["player2"]["y"] + self.paddleSize["H"] / 2 : self.players["player2"]["y"] += self.speed # Move down
-        if self.ball["y"] < self.players["player2"]["y"] + self.paddleSize["H"] / 2 : self.players["player2"]["y"] -= self.speed # Move up
+        self.players["player2"]["y"] += self.players["player2"]["playerDirection"] * self.speed
 
         if self.players["player2"]["y"] < 0 : self.players["player2"]["y"] = 0
         if self.players["player2"]["y"] > self.height - self.paddleSize["H"] : self.players["player2"]["y"] = self.height - self.paddleSize["H"]
@@ -190,6 +189,7 @@ class AIConsumer(AsyncWebsocketConsumer):
             "score": self.score,
             "winner": "WIN" if self.score["player1"] >= self.scoreLimit else "LOSE"
         }))
+        self.reset_game()
 
     async def send_game_state(self):
         await self.channel_layer.group_send(self.game_room, {
