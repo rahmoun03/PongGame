@@ -2,8 +2,9 @@ import json
 import random
 import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
+import logging
 
-player_queue = []
+logger = logging.getLogger(__name__)
 
 
 class AIConsumer(AsyncWebsocketConsumer):
@@ -21,6 +22,7 @@ class AIConsumer(AsyncWebsocketConsumer):
         self.score = {}
 
         print("USER : " ,self.scope["user"])
+        logger.info(f"Player connected to {self.game_room}")
         
         await self.channel_layer.group_add(self.game_room, self.channel_name)
         await self.accept()
