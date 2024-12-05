@@ -21,6 +21,14 @@
         <button id="train">Train Mode</button>
     </div>
 
+    {% comment %} create game over section {% endcomment %}
+    <div id="gameOver" style="display: none;">
+        <h1>Game Over</h1>
+        <p id="winner"></p>
+        <p id="score"></p>
+        <button action="/" id="playAgain">Play Again</button>
+    </div>
+
     {% comment %} Waiting for opponent section {% endcomment %}
     <div id="waiting" style="display: none;">
         <p>Waiting for opponent...</p>

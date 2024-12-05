@@ -21,7 +21,7 @@ class AIConsumer(AsyncWebsocketConsumer):
         self.players = {}
         self.score = {}
 
-        print("USER : " ,self.scope["user"])
+        print("scope : " ,self.scope)
         logger.info(f"Player connected to {self.game_room}")
         
         await self.channel_layer.group_add(self.game_room, self.channel_name)
@@ -190,7 +190,7 @@ class AIConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             "type": "game_over",
             "score": self.score,
-            "winner": "WIN" if self.score["player1"] >= self.scoreLimit else "LOSE"
+            "winner": "player1" if self.score["player1"] >= self.scoreLimit else "player2"
         }))
 
     async def send_game_state(self):

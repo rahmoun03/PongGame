@@ -1,4 +1,7 @@
 body {
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
     background: radial-gradient(circle, #141414, #444444);
     overflow: hidden;
 }
@@ -16,8 +19,21 @@ footer {
 
 
 #menu {
+    display: block;
+    /* place-items: center; */
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #1e1e1e, #333);
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+#gameOver {
     display: grid;
-    place-items: center;
+    /* place-items: center; */
+    justify-content: center;
+    align-items: center;
     height: 100vh;
     background: linear-gradient(135deg, #1e1e1e, #333);
     color: white;
@@ -85,6 +101,7 @@ button:active {
 }
 
 body::before {
+
     content: "";
     position: absolute;
     width: 200%;
