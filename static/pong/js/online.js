@@ -7,7 +7,7 @@ window.online_mode = () => {
 
     const online_URL = 'ws://'+window.location.host+'/ws/online/';
     const socket = new WebSocket(online_URL);
-    
+    let wsOpen = false;
     canvas.width = 800;
     canvas.height = 400;
     const selectedMode = "online";
@@ -19,10 +19,10 @@ window.online_mode = () => {
 
     // Handle WebSocket events
     socket.onopen = () => {
+        wsOpen = true;
         console.log("Connected to the WebSocket!");
         socket.send(JSON.stringify({
-			type: "countdown",
-			mode: selectedMode,
+			type: "join_room",
 			width: canvas.width,
 			height: canvas.height
 		}));
@@ -61,6 +61,7 @@ window.online_mode = () => {
     };
 
     socket.onclose = () => {
+        wsOpen = false;
         console.log("WebSocket closed!");
     };
 
@@ -100,14 +101,14 @@ window.online_mode = () => {
     function loop() {
         animationId = requestAnimationFrame(loop);
         draw();
-        sendPaddlePosition();
+        if(wsOpen)
+            sendPaddlePosition();
     }
   
 
     // Send paddle position to server
     function sendPaddlePosition() {
         console.log("sending  data ...");
-
         socket.send(JSON.stringify({
             type: "update_paddle",
             playerDirection : playerDirection,
@@ -131,14 +132,10 @@ window.online_mode = () => {
     function endGame(winner) {
         // Stop the game loop
         cancelAnimationFrame(animationId);
-
-        // Display the end screen
-        menu.innerHTML = `
-            <h1>Game Over!</h1>
-            <p>${winner} Wins!</p>
-            <h2>${score.player1}</h2> - <h2>${score.player2}</h2>
-        `;
-        menu.style.display = "grid";
+        // Display the game over screen
+        document.getElementById("gameOver").style.display = "flex";
+        document.getElementById("winner").innerText = `${winner} Wins!`;
+        document.getElementById("score").innerText = `${score.player1} - ${score.player2}`;
         canvas.style.display = "none";
         console.log("GAME OVER !");
     }

@@ -190,7 +190,7 @@ class AIConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             "type": "game_over",
             "score": self.score,
-            "winner": "WIN" if self.score["player1"] >= self.scoreLimit else "LOSE"
+            "winner": "player1" if self.score["player1"] >= self.scoreLimit else "player2"
         }))
 
     async def send_game_state(self):

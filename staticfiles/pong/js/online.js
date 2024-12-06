@@ -7,7 +7,7 @@ window.online_mode = () => {
 
     const online_URL = 'ws://'+window.location.host+'/ws/online/';
     const socket = new WebSocket(online_URL);
-    
+    let wsOpen = false;
     canvas.width = 800;
     canvas.height = 400;
     const selectedMode = "online";
@@ -19,9 +19,10 @@ window.online_mode = () => {
 
     // Handle WebSocket events
     socket.onopen = () => {
+        wsOpen = true;
         console.log("Connected to the WebSocket!");
         socket.send(JSON.stringify({
-			type: "countdown",
+			type: "join_room",
 			mode: selectedMode,
 			width: canvas.width,
 			height: canvas.height
@@ -61,6 +62,7 @@ window.online_mode = () => {
     };
 
     socket.onclose = () => {
+        wsOpen = false;
         console.log("WebSocket closed!");
     };
 
@@ -100,14 +102,14 @@ window.online_mode = () => {
     function loop() {
         animationId = requestAnimationFrame(loop);
         draw();
-        sendPaddlePosition();
+        if(wsOpen)
+            sendPaddlePosition();
     }
   
 
     // Send paddle position to server
     function sendPaddlePosition() {
         console.log("sending  data ...");
-
         socket.send(JSON.stringify({
             type: "update_paddle",
             playerDirection : playerDirection,

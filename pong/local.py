@@ -101,25 +101,18 @@ class LocalConsumer(AsyncWebsocketConsumer):
     def update_game(self):
         self.ball["x"] += self.ball["dx"]
         self.ball["y"] += self.ball["dy"]
-        self.move_player1()
-        self.move_player2()
+        self.move_paddle("player1")
+        self.move_paddle("player2")
         self.check_collision()
         self.checkGoals()
 
 
 
 
-    def move_player1(self):
-        self.players["player1"]["y"] += self.players["player1"]["playerDirection"] * self.speed
-        
-        if self.players["player1"]["y"] < 0 : self.players["player1"]["y"] = 0
-        if self.players["player1"]["y"] > self.height - self.paddleSize["H"] : self.players["player1"]["y"] = self.height - self.paddleSize["H"]
-
-    def move_player2(self):
-        self.players["player2"]["y"] += self.players["player2"]["playerDirection"] * self.speed
-
-        if self.players["player2"]["y"] < 0 : self.players["player2"]["y"] = 0
-        if self.players["player2"]["y"] > self.height - self.paddleSize["H"] : self.players["player2"]["y"] = self.height - self.paddleSize["H"]
+    def move_paddle(self, player):
+        paddle = self.players[player]
+        paddle["y"] += paddle["playerDirection"] * self.speed
+        paddle["y"] = max(0, min(self.height - self.paddleSize["H"], paddle["y"]))
 
 
     def check_collision(self):
@@ -187,7 +180,7 @@ class LocalConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             "type": "game_over",
             "score": self.score,
-            "winner": "WIN" if self.score["player1"] >= self.scoreLimit else "LOSE"
+            "winner": "player1" if self.score["player1"] >= self.scoreLimit else "player2"
         }))
         self.reset_game()
 
