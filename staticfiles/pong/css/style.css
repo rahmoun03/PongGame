@@ -1,4 +1,7 @@
 body {
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
     background: radial-gradient(circle, #141414, #444444);
     overflow: hidden;
 }
@@ -97,6 +100,7 @@ button:active {
 }
 
 body::before {
+
     content: "";
     position: absolute;
     width: 200%;

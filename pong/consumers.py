@@ -21,7 +21,7 @@ class AIConsumer(AsyncWebsocketConsumer):
         self.players = {}
         self.score = {}
 
-        print("USER : " ,self.scope["user"])
+        print("scope : " ,self.scope)
         logger.info(f"Player connected to {self.game_room}")
         
         await self.channel_layer.group_add(self.game_room, self.channel_name)
