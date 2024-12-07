@@ -97,6 +97,17 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
             self.width = data["width"]
             self.height = data["height"]
             self.restart_game()
+            await self.channel_layer.group_send(
+                self.group_room,
+                {
+                    "type": "start",
+                    "player1": self.player1,
+                    "player2": self.player2,
+                    "ball": self.ball,
+                    "score": self.score,
+                    "paddle": self.paddle,
+                }
+            )
 
         
         if data["type"] == "start_game":
