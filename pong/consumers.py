@@ -218,3 +218,4 @@ class AIConsumer(AsyncWebsocketConsumer):
     async def start_game(self):
         await self.send_game_state()
         asyncio.create_task(self.game_loop())
+

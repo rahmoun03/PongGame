@@ -23,7 +23,6 @@ window.online_mode = () => {
         console.log("Connected to the WebSocket!");
         socket.send(JSON.stringify({
 			type: "join_room",
-			mode: selectedMode,
 			width: canvas.width,
 			height: canvas.height
 		}));
@@ -133,14 +132,10 @@ window.online_mode = () => {
     function endGame(winner) {
         // Stop the game loop
         cancelAnimationFrame(animationId);
-
-        // Display the end screen
-        menu.innerHTML = `
-            <h1>Game Over!</h1>
-            <p>${winner} Wins!</p>
-            <h2>${score.player1}</h2> - <h2>${score.player2}</h2>
-        `;
-        menu.style.display = "grid";
+        // Display the game over screen
+        document.getElementById("gameOver").style.display = "flex";
+        document.getElementById("winner").innerText = `${winner} Wins!`;
+        document.getElementById("score").innerText = `${score.player1} - ${score.player2}`;
         canvas.style.display = "none";
         console.log("GAME OVER !");
     }

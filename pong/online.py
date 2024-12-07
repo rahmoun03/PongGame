@@ -6,7 +6,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 
 # Queue to hold waiting players
 player_queue = []
-max_speed = 10
+max_speed = 9
 
 class MultiplayerConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -14,6 +14,7 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
         print("USER : ", self.scope["user"], "connect to webSocket")
 
         player_queue.append(self)
+        self.user = self.scope["user"]
         self.speed = 3
         self.score_limit = 3
         self.height = None
@@ -40,6 +41,7 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
         if data["type"] == "join_room":
             self.width = data["width"]
             self.height = data["height"]
+            print(self.height, "x", self.width)
             self.reset_game()
             if len(player_queue) >= 2:
                 print("USER : ", self.scope["user"], " Enter to the room")
@@ -62,25 +64,23 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
 
                 print(self.role," : ", self.scope["user"] , " vs " ,opponent.role, " : ", opponent.scope["user"])
 
-                # self.ball["dx"] = opponent.ball["dx"]
-                # self.ball["dy"] = opponent.ball["dy"]
-
                 # Add players to the same channel group
                 await self.channel_layer.group_add(self.game_room, self.channel_name)
                 await opponent.channel_layer.group_add(self.game_room, opponent.channel_name)
-                # data = {
-                #     self.ball,
-                #     self.players,
-                # }
+     
                 # Notify players that the game has started
+                print(f"Broadcast from {self.role}")
                 await self.channel_layer.group_send(self.game_room, {
                     "type": "start",
+                    "role": self.role,
+                    "ball": self.ball
                 })
 
 
         if data["type"] == "start_game":
             # if(self.role == "player1"):
             asyncio.create_task(self.game_loop())
+
 
         if data["type"] == "update_paddle":
             direction = data["playerDirection"]
@@ -90,16 +90,18 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
             elif self.role == "player2":
                 self.players["player2"]["playerDirection"] = direction
             # Broadcast the updated paddle direction to the opponent
+            
             # print(f"Broadcast from {self.role}")
             await self.channel_layer.group_send(self.game_room, {
                 "type": "paddle_update",
-                "players": self.players,
+                "role": self.role,
+                "players": self.players
             })
 
 
 
     async def game_loop(self):
-        print("USER : ", self.scope["user"], "Start The Loop")
+        print(f"create a loop by : {self.role}")
         while self.is_active:
             self.update_game()
             if self.score["player1"] >= self.score_limit or self.score["player2"] >= self.score_limit:
@@ -117,17 +119,20 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
             "dy": 3 if random.randint(0, 1) > 0.5 else -3,
             "radius": 10,
         }
-        self.paddle_size = {"W": 10, "H": 80}
+        self.paddle_size = {
+            "W": self.width / 80,
+            "H": self.height / 5
+        }
         self.players = {
-            "player1": {"x": 5, "y": self.height / 2 - 40, "playerDirection": 0},
-            "player2": {"x": self.width - 15, "y": self.height / 2 - 40, "playerDirection": 0},
+            "player1": {"x": 5, "y": (self.height / 2) - (self.paddle_size["H"] / 2), "playerDirection": 0},
+            "player2": {"x": self.width - self.paddle_size["W"] - 5, "y": self.height / 2 - (self.paddle_size["H"] / 2), "playerDirection": 0},
         }
         self.score = {"player1": 0, "player2": 0}
 
     def update_game(self):
+        self.ball["dx"] = max(-max_speed, min(max_speed, self.ball["dx"]))
         self.ball["x"] += self.ball["dx"]
         self.ball["y"] += self.ball["dy"]
-        self.ball["dx"] = max(-max_speed, min(max_speed, self.ball["dx"]))
         self.move_paddle("player1")
         self.move_paddle("player2")
         self.check_collision()
@@ -176,28 +181,35 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
             # self.ball["dx"] += (-0.5 if self.players["player2"]["playerDirection"] == 1 else 0) * self.speed
             # self.ball["dx"] += ( 0.5 if self.players["player2"]["playerDirection"] == -1 else 0) * self.speed
 
-    async def check_goals(self):
+    def check_goals(self):
         if self.ball["x"] - self.ball["radius"] < 0:
             self.score["player2"] += 1
+            print(self.role, ": ", self.score["player2"], " - ", self.score["player1"])
             self.reset_ball()
         elif self.ball["x"] + self.ball["radius"] > self.width:
             self.score["player1"] += 1
+            print(self.role, ": ", self.score["player2"], " - ", self.score["player1"])
             self.reset_ball()
 
     def reset_ball(self):
-        self.ball.update({
-            "x": self.width / 2,
-            "y": self.height / 2,
-            "dx": 3 if random.randint(0, 1) else -3,
-            "dy": 3
-            })
+        self.ball["x"] = self.width / 2
+        self.ball["y"] = self.height / 2
+
+        self.ball["dx"] = 3 if random.randint(0,1) > 0.5 else -3
+        self.ball["dy"] = 3 if random.randint(0,1) > 0.5 else -3
+        
+
+
+    async def goal(self, event):
+        self.ball = event["ball"]
 
     async def send_game_state(self):
-        await self.channel_layer.group_send(self.game_room, {
+        await self.channel_layer.group_send(self.game_room , {
             "type": "update",
             "players": self.players,
             "ball": self.ball,
-            "score": self.score
+            "score": self.score,
+            "role": self.role
             })
 
     async def send_game_over(self):
@@ -208,30 +220,35 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
             })
     
     async def paddle_update(self, event):
-        if self.role == "player1":
-            self.players["player2"] = event["players"]["player2"]
-        elif self.role == "player2":
-            self.players["player1"] = event["players"]["player1"]
-        # self.players = event["players"]
+        player = event["role"]
+        if self.role is not player:
+            self.players[player]["playerDirection"] = event["players"][player]["playerDirection"]
+
+        
 
 
     async def update(self, event):
         self.ball = event["ball"]
+        self.score = event["score"]
         await self.send(json.dumps({
             "type": "update",
             "players": self.players,
-            "ball": event["ball"],
+            "ball": self.ball,
             "score": self.score
             }))
 
     async def game_over(self, event):
+        print(self.role, " : game over")
         await self.send(json.dumps({
             "type": "game_over",
             "score": event["score"],
             "winner": event["winner"]
             }))
+        
 
     async def start(self, event):
+        print(f"to : {self.role}")
+        self.ball = event["ball"]
         await self.send(json.dumps({
             "type": "start",
             "players": self.players,

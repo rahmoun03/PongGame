@@ -32,7 +32,7 @@ window.online_mode = () => {
         const data = JSON.parse(e.data);
         console.log('data', data)
         if (data.type === "start") {
-            // Hide the waiting page and start the game
+            // Hide the waiting canvas.widthpage and start the game
             waitingPage.style.display = "none";
             canvas.style.display = "block";
             ball = data.ball;
@@ -73,7 +73,7 @@ window.online_mode = () => {
         // Ball
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-        ctx.fillStyle = "white";
+        ctx.fillStyle = "orange";
         ctx.fill();
         ctx.closePath();
 
@@ -139,6 +139,7 @@ window.online_mode = () => {
         canvas.style.display = "none";
         console.log("GAME OVER !");
     }
+    
     function resizeCanvas() {
         const aspectRatio = 800 / 400; // Original width/height ratio
         const maxWidth = window.innerWidth * 0.8; // Use 80% of screen width
