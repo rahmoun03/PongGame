@@ -35,6 +35,7 @@ window.online_mode = () => {
             // Hide the waiting canvas.widthpage and start the game
             waitingPage.style.display = "none";
             canvas.style.display = "block";
+            document.getElementById("canvasSpace").style.display = "flex";
             player = data.player1;
             player2 = data.player2;
             ball = data.ball;
@@ -117,6 +118,14 @@ window.online_mode = () => {
     }
     document.addEventListener("keydown", movePaddle);
     document.addEventListener("keyup", stopPaddle);
+    window.addEventListener("resize", () => {
+        resizeCanvas();
+        socket.send(JSON.stringify({
+            type: "resize",
+            width: canvas.width,
+            height: canvas.height
+        }));
+    });
 
     function movePaddle(e)
     {
@@ -147,7 +156,7 @@ window.online_mode = () => {
     
         if (maxWidth / aspectRatio <= maxHeight) {
             canvas.width = maxWidth;
-            canvas.height = maxWidth / aspectRatio;
+            canvas.height = maxHeight;
         } else {
             canvas.height = maxHeight;
             canvas.width = maxHeight * aspectRatio;

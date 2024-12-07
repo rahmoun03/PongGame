@@ -34,8 +34,10 @@
         <p>Waiting for opponent...</p>
         <div class="loader"></div>
     </div>
+    <div id="canvasSpace" style="display: none;">
+        <canvas id="pongCanvas" style="display: none;"></canvas>
+    </div>
 
-    <canvas id="pongCanvas" style="display: none;"></canvas>
     <script src="{% static 'pong/js/script.js' %}"></script>
     <script src="{% static 'pong/js/ai.js' %}"></script>
     <script src="{% static 'pong/js/online.js' %}"></script>

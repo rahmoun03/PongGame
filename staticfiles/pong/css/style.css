@@ -17,6 +17,12 @@ footer {
     left: 10px;
 }
 
+#canvasSpace {
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+}
+
 
 #menu {
     display: flex;
