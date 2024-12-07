@@ -35,9 +35,9 @@ window.online_mode = () => {
             // Hide the waiting canvas.widthpage and start the game
             waitingPage.style.display = "none";
             canvas.style.display = "block";
+            player = data.player1;
+            player2 = data.player2;
             ball = data.ball;
-            player = data.players["player1"];
-            player2 = data.players["player2"];
             score = data.score;
             paddle = data.paddle
             startCountdown(() => {
@@ -84,11 +84,11 @@ window.online_mode = () => {
 
         // Player paddle'
         ctx.fillStyle = "white";
-        ctx.fillRect(player.x, player.y, paddle.W, paddle.H);
+        ctx.fillRect(player.x, player.y, paddle.width, paddle.height);
 
         // player2 paddle
         ctx.fillStyle = "white";
-        ctx.fillRect(player2.x, player2.y, paddle.W, paddle.H);
+        ctx.fillRect(player2.x, player2.y, paddle.width, paddle.height);
 
         // Scores
         ctx.fillStyle = "white";
@@ -111,7 +111,7 @@ window.online_mode = () => {
         console.log("sending  data ...");
         socket.send(JSON.stringify({
             type: "update_paddle",
-            playerDirection : playerDirection,
+            direction : playerDirection,
             mode: selectedMode,
         }));
     }
