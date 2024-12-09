@@ -93,6 +93,8 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
                     "player2": self.player2
                 }
             )
+
+        
         if data["type"] == "resize":
             self.width = data["width"]
             self.height = data["height"]
@@ -121,9 +123,19 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
             #update_paddle paddle
             self.move_paddel(self.player1)
             self.move_paddel(self.player2)
-
+            
+            await self.send_update()
             await asyncio.sleep(0.015)
 
+    async def send_update(self):
+        await self.send(json.dumps(
+            {
+                "type": "update",
+                "player1": self.player1,
+                "player2": self.player2,
+                "ball": self.ball,
+                "score": self.score,
+            }))
 
     def move_paddel(self, player):
             player["y"] += player["direction"] * self.speed
