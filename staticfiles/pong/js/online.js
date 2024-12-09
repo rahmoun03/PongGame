@@ -30,7 +30,7 @@ window.online_mode = () => {
 
     socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log('data', data)
+        console.table('data', data)
         if (data.type === "start") {
             // Hide the waiting canvas.widthpage and start the game
             waitingPage.style.display = "none";

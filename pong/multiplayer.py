@@ -122,6 +122,14 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
             self.move_paddel(self.player1)
             self.move_paddel(self.player2)
 
+            await self.send(json.dumps({
+                "type" : "update",
+                "ball" : self.ball,
+                "player1" : self.player1,
+                "player2": self.player2,
+                "score": self.score
+            }))
+            print("data : ", self.player1["y"], self.player2["y"])
             await asyncio.sleep(0.015)
 
 
