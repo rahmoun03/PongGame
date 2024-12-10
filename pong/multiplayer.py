@@ -6,10 +6,18 @@ from channels.generic.websocket import AsyncWebsocketConsumer # type: ignore
 
 player_queue = []
 
+class GameSettings:
+    WINNING_SCORE = 5
+    BALL_SPEED_INCREASE = 1.05
+    FRAME_DELAY = 0.015
+    PADDLE_HEIGHT_RATIO = 5  # screen height / 5
+    PADDLE_WIDTH_RATIO = 80  # screen width / 80
+
 class MultiplayerConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         player_queue.append(self)
+        self.is_active = True
         self.width = 800
         self.height = 400
         self.speed = 5
@@ -34,13 +42,14 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
                 self.group_room,
                 self.channel_name
             )
+        # Should also notify the other player about disconnection
 
     async def receive(self, text_data):
         data = json.loads(text_data)
         if data["type"] == "join_room":
             self.width = data["width"]
             self.height = data["height"]
-            self.restart_game()
+            await self.restart_game()
             if len(player_queue) >= 2 :
                 if player_queue[0] == self:
                     opponent = player_queue[1]
@@ -64,6 +73,8 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
                     opponent.channel_name
                 )
 
+                dx = 1 if random.randint(0,1) > 0.5 else -1
+                dy = 1 if random.randint(0,1) > 0.5 else -1
 
                 await self.channel_layer.group_send(
                     self.group_room,
@@ -71,6 +82,8 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
                         "type": "start",
                         "player1": self.player1,
                         "player2": self.player2,
+                        "dx" : dx,
+                        "dy" : dy,
                         "ball": self.ball,
                         "score": self.score,
                         "paddle": self.paddle,
@@ -93,45 +106,139 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
                     "player2": self.player2
                 }
             )
-        if data["type"] == "resize":
-            self.width = data["width"]
-            self.height = data["height"]
-            self.restart_game()
-            await self.channel_layer.group_send(
-                self.group_room,
-                {
-                    "type": "start",
-                    "player1": self.player1,
-                    "player2": self.player2,
-                    "ball": self.ball,
-                    "score": self.score,
-                    "paddle": self.paddle,
-                }
-            )
+
+        
+        # if data["type"] == "resize":
+        #     self.width = data["width"]
+        #     self.height = data["height"]
+        #     self.restart_game()
+        #     await self.channel_layer.group_send(
+        #         self.group_room,
+        #         {
+        #             "type": "start",
+        #             "player1": self.player1,
+        #             "player2": self.player2,
+        #             "ball": self.ball,
+        #             "score": self.score,
+        #             "paddle": self.paddle,
+        #         }
+        #     )
 
         
         if data["type"] == "start_game":
+            print(self.scope["user"], ": starting the game")
             asyncio.create_task(self.start_game())
                 
 
 
 
     async def start_game(self):
-        while True:
+        while self.is_active:
             #update_paddle paddle
             self.move_paddel(self.player1)
             self.move_paddel(self.player2)
+            self.move_ball()
+            await self.check_goals()
+            if self.score["player1"] >= 5 or self.score["player2"] >= 5:
+                await self.send_game_over()
+                break
+            await self.send_update()
+            await asyncio.sleep(0.016)
 
-            await self.send(json.dumps({
-                "type" : "update",
-                "ball" : self.ball,
-                "player1" : self.player1,
+    async def send_update(self):
+        await self.send(json.dumps(
+            {
+                "type": "update",
+                "player1": self.player1,
                 "player2": self.player2,
-                "score": self.score
+                "ball": self.ball,
+                "score": self.score,
             }))
-            print("data : ", self.player1["y"], self.player2["y"])
-            await asyncio.sleep(0.015)
 
+    async def send_game_over(self):
+        await self.channel_layer.group_send(self.group_room, {
+            "type" : "game_over"
+        })
+
+    async def game_over(self, event):
+        if(self.is_active):
+            print("game over : ", self.score)
+            await self.send(json.dumps(
+            {
+                "type": "game_over",
+                "score": self.score,
+                "winner": "WIN" if self.score[self.role] >= 5 else "LOSE"
+            }))
+        self.is_active = False
+
+
+    async def check_goals(self):
+        # print(self.role , ": was here")
+        if self.ball["x"] - self.ball["radius"] <= 0:
+            if self.role == "player1" :
+                await self.reset_ball("player2")
+        elif self.ball["x"] + self.ball["radius"] >= self.width:
+            if self.role == "player1" :
+                await self.reset_ball("player1")
+    
+    async def reset_ball(self, player):
+        dx = 1 if random.randint(0,1) > 0.5 else -1
+        dy = 1 if random.randint(0,1) > 0.5 else -1
+
+        # print(self.role , ": send to group : ", self.score)
+        await self.channel_layer.group_send(self.group_room, {
+            "type" : "goal",
+            "who" : player,
+            "dx" : dx,
+            "dy": dy
+        })
+        
+
+    async def goal(self, event):
+        # print(self.role , "recieve .",)
+        self.score[event["who"]] += 1
+        self.ball["x"] = self.width / 2
+        self.ball["y"] = self.height / 2
+        self.ball["dx"] = self.ball_dx * event["dx"]
+        self.ball["dy"] = self.ball_dy * event["dy"]
+
+    def move_ball(self):
+        self.ball["x"] += self.ball["dx"]
+        self.ball["y"] += self.ball["dy"]
+
+        if self.ball["y"] - self.ball["radius"] <= 0 or self.ball["y"] + self.ball["radius"] >= self.height:
+            self.ball["dy"] *= -1
+
+        # check for paddle and ball collision  PLAYER 1
+        if self.ball["x"] - self.ball["radius"] <= self.player1['x'] + self.paddle["width"] and self.player1["y"] <= self.ball["y"] <= self.player1["y"] + self.paddle["height"]:
+            #check for bottom paddle corner
+            if self.ball["y"] > self.player1["y"] + (self.paddle["height"] -  (self.paddle["height"] / 10)):
+                self.ball["dy"] *= -1 if self.ball["dy"] < 0 else 1 #Bounce the ball back
+            
+            #check for top paddle corner
+            elif self.ball["y"] < self.player1["y"] + self.paddle["height"] / 10:
+                self.ball["dy"] *= -1 if self.ball["dy"] > 0 else  1 #Bounce the ball back
+            
+            self.ball["dx"] *= -1
+            self.ball["dx"] *= 1.05 # Ball speed increase after hit
+            # self.ball["dx"] += (-0.5 if self.players["player1"]["playerDirection"] == 1 else 0) * self.speed
+            # self.ball["dx"] += ( 0.5 if self.players["player1"]["playerDirection"] == -1 else 0) * self.speed
+
+                 # check for paddle and ball collision  PLAYER 2
+        if self.ball["x"] + self.ball["radius"] >= self.player2['x'] and self.player2["y"] <= self.ball["y"] <= self.player2["y"] + self.paddle["height"]:
+            #check for bottom paddle corner
+            if self.ball["y"] > self.player2["y"] + (self.paddle["height"] -  (self.paddle["height"] / 10)):
+                self.ball["dy"] *= -1 if self.ball["dy"] < 0 else 1 #Bounce the ball back
+            
+            #check for top paddle corner
+            elif self.ball["y"] < self.player2["y"] + self.paddle["height"] / 10:
+                self.ball["dy"] *= -1 if self.ball["dy"] > 0 else  1 #Bounce the ball back
+            
+            self.ball["dx"] *= -1
+            self.ball["dx"] *= 1.05 # Ball speed increase after hit
+            # self.ball["dx"] += (-0.5 if self.players["player2"]["playerDirection"] == 1 else 0) * self.speed
+            # self.ball["dx"] += ( 0.5 if self.players["player2"]["playerDirection"] == -1 else 0) * self.speed
+        
 
     def move_paddel(self, player):
             player["y"] += player["direction"] * self.speed
@@ -150,12 +257,8 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
 
 
     async def start(self, event):
-        if (event["ball"]["dx"] < 0 and self.ball["dx"] > 0 ) or (event["ball"]["dx"] > 0 and self.ball["dx"] < 0 ):
-            self.ball["dx"] *= -1
-        
-        if (event["ball"]["dy"] < 0 and self.ball["dy"] > 0 ) or (event["ball"]["dy"] > 0 and self.ball["dy"] < 0 ):
-            self.ball["dy"] *= -1
-    
+        self.ball["dx"] = self.ball_dx * event["dx"]
+        self.ball["dy"] = self.ball_dy * event["dy"]
         
         await self.send(json.dumps({
             "type": "start",
@@ -167,31 +270,31 @@ class MultiplayerConsumer(AsyncWebsocketConsumer):
         }))
 
 
-    def restart_game(self):
+    async def restart_game(self):
 
         self.paddle["height"] = self.height / 5  # Dynamic height based on screen size
         self.paddle["width"] = self.width / 80  # Dynamic width based on screen size
         ball_radius = self.height / 40  # Dynamic ball radius
-        self.speed = self.height / 50
-        ball_dx = self.width / 150  # Adjust ball speed according to width
-        ball_dy = self.height / 150  # Adjust ball speed according to height
+        self.speed = self.height / 60
+        self.ball_dx = self.width / 150  # Adjust ball speed according to width
+        self.ball_dy = self.height / 150  # Adjust ball speed according to height
 
 
         self.player1 = {
             "x": self.paddle["width"] / 2,
-            "y": (self.height / 2) - self.paddle["height"],
+            "y": (self.height / 2) - (self.paddle["height"] / 2),
             "direction": 0
         }
         self.player2 = {
             "x": self.width - self.paddle["width"] - (self.paddle["width"] / 2),
-            "y": (self.height / 2) - self.paddle["height"],
+            "y": (self.height / 2) - (self.paddle["height"] / 2),
             "direction": 0
             }
         self.ball = {
             "x" : self.width / 2 ,
             "y" : self.height / 2,
-            "dx": ball_dx if random.randint(0, 1) > 0.5 else -ball_dx,
-            "dy": ball_dy if random.randint(0, 1) > 0.5 else -ball_dy,
+            "dx": self.ball_dx if random.randint(0, 1) > 0.5 else -self.ball_dx,
+            "dy": self.ball_dy if random.randint(0, 1) > 0.5 else -self.ball_dy,
             "radius": ball_radius
         }
         self.score = {

@@ -50,8 +50,8 @@ window.online_mode = () => {
         }
         if (data.type === "update") {
             ball = data.ball;
-            player = data.players["player1"];
-            player2 = data.players["player2"];
+            player = data.player1;
+            player2 = data.player2;
             score = data.score;
         }
         if (data.type === "game_over") {
@@ -129,6 +129,7 @@ window.online_mode = () => {
 
     function movePaddle(e)
     {
+        console.log("move paddle");
         if(e.key === 'ArrowUp') playerDirection = -1;
         if(e.key === 'ArrowDown') playerDirection = 1;
     }
@@ -143,7 +144,7 @@ window.online_mode = () => {
         cancelAnimationFrame(animationId);
         // Display the game over screen
         document.getElementById("gameOver").style.display = "flex";
-        document.getElementById("winner").innerText = `${winner} Wins!`;
+        document.getElementById("winner").innerText = `You ${winner}`;
         document.getElementById("score").innerText = `${score.player1} - ${score.player2}`;
         canvas.style.display = "none";
         console.log("GAME OVER !");
