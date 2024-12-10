@@ -16,6 +16,7 @@ document.getElementById("ai").addEventListener("click", () => startGame("ai"));
 document.getElementById("onlineMultiplayer").addEventListener("click", () => startGame("onlineMultiplayer"));
 document.getElementById("localMultiplayer").addEventListener("click", () => startGame("localMultiplayer"));
 document.getElementById("tournament").addEventListener("click", () => startGame("tournament"));
+document.getElementById("train").addEventListener("click", () => startGame("train"));
 
 
 function startGame(mode) {
@@ -51,5 +52,11 @@ function startGame(mode) {
 		canvas.style.display = 'block';
 		menu.style.display = 'none';
 		window.ai();
+	}
+	else if (mode === "train" ) {
+		console.log("you select Train mode");
+		canvas.style.display = 'block';
+		menu.style.display = 'none';
+		window.play();
 	}
 }
