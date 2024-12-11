@@ -34,7 +34,7 @@ window.ai = () => {
         if (data.type === "start") {
             // Hide the waiting page and start the game
             waitingPage.style.display = "none";
-            canvas.style.display = "block";
+            document.getElementById("canvasSpace").style.display = "flex";
             ball = data.ball;
             player = data.players["player1"];
             player2 = data.players["player2"];
@@ -68,6 +68,11 @@ window.ai = () => {
     function draw() {
         ctx.fillStyle = "gray";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        
+        // center line
+        ctx.fillStyle = "white";
+        ctx.fillRect((canvas.width / 2) - 1, 0, 2, canvas.height);
 
         // Ball
         ctx.beginPath();
@@ -76,10 +81,6 @@ window.ai = () => {
         ctx.fill();
         ctx.closePath();
 
-        // center line
-        ctx.fillStyle = "white";
-        ctx.fillRect((canvas.width / 2) - 1, 0, 2, canvas.height);
-        
 
         // Player paddle'
         ctx.fillStyle = "white";

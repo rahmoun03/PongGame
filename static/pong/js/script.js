@@ -55,8 +55,9 @@ function startGame(mode) {
 	}
 	else if (mode === "train" ) {
 		console.log("you select Train mode");
-		canvas.style.display = 'block';
-		menu.style.display = 'none';
+        menu.style.display = "none";
+		canvas.style.display = "block";
+        waitingPage.style.display = "flex"; // Show waiting page
 		window.play();
 	}
 }

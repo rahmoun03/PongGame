@@ -1,14 +1,15 @@
 window.play = function ()
 {
     const canvas = document.getElementById("pongCanvas");
+    const waitingPage = document.getElementById("waiting");
     const online_URL = 'ws://'+window.location.host+'/ws/train/';
     const socket = new WebSocket(online_URL);
     let wsOpen = false;
     const selectedMode = "train";
-    let ball_config, player1_config, player2_config, paddle, score, animationId;
+    let ball_config, player1_config, player2_config, paddle, score, animationId, role;
     let playerDirection = 0;
+    let player1ScoreMesh, player2ScoreMesh;
     let player1 , player2;
-
 
     const gui = new dat.GUI();
     
@@ -26,7 +27,7 @@ window.play = function ()
 
     let stats = new Stats();
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 2000);
-    camera.position.set(0, 10, 10);
+    camera.position.set(0, 20, 30);
     scene.add(camera);
 
     const renderer = new THREE.WebGLRenderer( {canvas, antialias: true} );
@@ -60,7 +61,7 @@ window.play = function ()
         wsOpen = true;
         console.log("Connected to the WebSocket!");
         socket.send(JSON.stringify({
-			type: "train",
+			type: "join_room",
 			width: canvas.width,
 			height: canvas.height
 		}));
@@ -69,37 +70,46 @@ window.play = function ()
         const data = JSON.parse(e.data);
         console.table('data', data)
         if (data.type === "start") {
-
+            waitingPage.style.display = "none";
             table_config = data.table;
             paddle = data.paddle;
             player1_config = data.player1;
             player2_config = data.player2;
             ball_config = data.ball;
             score = data.score;
+            role = data.role;
+            updateCameraPosition(role);
             table();
             ballCreation();
             playerCreation();
             createScore();
             guiControl();
             animate();
-            // canvas.style.display = "block";
-            // document.getElementById("canvasSpace").style.display = "flex";
-            // player = data.player1;
-            // player2 = data.player2;
-            // ball = data.ball;
-            // score = data.score;
-            // paddle = data.paddle
+            socket.send(JSON.stringify({ 
+                type: "start_game",
+            }));
+            console.log("sending start_game");
         }
         if (data.type === "update") {
-            // ball = data.ball;
-            // player = data.player1;
-            // player2 = data.player2;
-            // score = data.score;
+
+            player1.position.x = data.player1.x;
+            player2.position.x = data.player2.x;
+            ball.position.x = data.ball.x;
+            ball.position.z = data.ball.z;
+            score = data.score;
+        }
+        if (data.type === "goal") {
+            player1.position.x = data.player1.x;
+            player2.position.x = data.player2.x;
+            ball.position.x = data.ball.x;
+            ball.position.z = data.ball.z;
+            score = data.score;
+            shakeCamera();
+            updateScore();
         }
         if (data.type === "game_over") {
-            // score = data.score;
-            // draw();
-            // endGame(data.winner);
+            score = data.score;
+            endGame(data.winner);
         }
     };
     socket.onclose = () => {
@@ -108,19 +118,19 @@ window.play = function ()
     };
 
 
-    // document.addEventListener("keydown", movePaddle);
-    // document.addEventListener("keyup", stopPaddle);
-    // function movePaddle(e)
-    // {
-    //     console.log("move paddle");
-    //     if(e.key === 'ArrowUp') playerDirection = -1;
-    //     if(e.key === 'ArrowDown') playerDirection = 1;
-    // }
-    // function stopPaddle(e)
-    // {
-    //     if (e.key === "ArrowUp" || e.key === "ArrowDown")
-    //         playerDirection = 0;
-    // }
+    document.addEventListener("keydown", movePaddle);
+    document.addEventListener("keyup", stopPaddle);
+    function movePaddle(e)
+    {
+        console.log("move paddle", e.key);
+        if(e.key === 'ArrowLeft') playerDirection = -1;
+        if(e.key === 'ArrowRight') playerDirection = 1;
+    }
+    function stopPaddle(e)
+    {
+        if (e.key === "ArrowLeft" || e.key === "ArrowRight")
+            playerDirection = 0;
+    }
 
 
     window.addEventListener("resize", () => {
@@ -132,12 +142,11 @@ window.play = function ()
     });
 
     function table() {
-        tableHeight = table_config.plane.PlaneGeometry.tableHeight;
-        tableWidth = table_config.plane.PlaneGeometry.tableWidth;
+        tableHeight = table_config.tableHeight;
+        tableWidth = table_config.tableWidth;
         plane = new THREE.Mesh(
             new THREE.PlaneGeometry(tableWidth, tableHeight),
             new THREE.MeshPhysicalMaterial( {
-                // color: 0xbcbcbc,
                 side: THREE.DoubleSide,
                 reflectivity: 0,
                 transmission: 1.0,
@@ -146,8 +155,8 @@ window.play = function ()
                 clearcoat: 0.3,
                 clearcoatRoughness: 0.25,
                 color: new THREE.Color(0xffffff),
-                ior: 1.2
-                // thickness: 10.0
+                ior: 1.2,
+                thickness: 10.0
             } )
         );
         plane.receiveShadow = true;
@@ -301,7 +310,7 @@ window.play = function ()
             player1ScoreMesh.position.set(-3.5, -0.4, 14);
             player1ScoreMesh.rotation.x = -Math.PI / 2;
             scene.add(player1ScoreMesh);
-            console.log("Player Score: ", player1ScoreMesh);
+            // console.log("Player Score: ", player1ScoreMesh);
 
             const player2Score = new THREE.TextGeometry(`${score.player2}`, {
                 font: font,
@@ -312,10 +321,22 @@ window.play = function ()
             player2ScoreMesh.position.set(-3.5, -0.4, -14);
             player2ScoreMesh.rotation.x = Math.PI / 2;
             scene.add(player2ScoreMesh);
-            console.log("Player Score: ", player2ScoreMesh);
+            // console.log("Player Score: ", player2ScoreMesh);
         });
     }
 
+    function updateScore() {
+        scene.remove(player1ScoreMesh);
+        scene.remove(player2ScoreMesh);
+        createScore();
+    }
+
+    function updateCameraPosition(role) {
+        if (role === "player1")
+            camera.position.set(0, 20, 35);
+        if (role === "player2")
+            camera.position.set(0, 20, -35);
+    }
 
     function guiControl(){
         gui.add(camera.position, "x",);
@@ -329,9 +350,92 @@ window.play = function ()
 
     function animate ()
     {
-        window.requestAnimationFrame(animate);
+        animationId = requestAnimationFrame(animate);
         stats.update();
         controls.update();
+
         renderer.render( scene, camera );
+        if (wsOpen)
+            sendPaddlePosition();
+
+    }
+
+    function sendPaddlePosition() {
+        console.log("sending  data ...");
+        socket.send(JSON.stringify({
+            type: "update_paddle",
+            direction : playerDirection,
+            mode: selectedMode,
+        }));
+    }
+
+    function startCountdown(callback) {
+        let countdown = 3; // Start at 3
+        let opacity = 1; // Initial opacity for fading effect
+        let scale = 1; // Initial scale for size animation
+    
+        const interval = setInterval(() => {
+    
+            // Save canvas state
+            // ctx.save();
+            
+            // Set text properties
+            // ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`; // Fading effect
+            // ctx.font = `${100 * scale}px Arial`; // Dynamic scaling
+            // ctx.textAlign = "center";
+            // ctx.textBaseline = "middle";
+            
+            // Render countdown or "GO!"
+            // ctx.fillText(countdown > 0 ? countdown : "GO!", canvas.width / 2, canvas.height / 2);
+            
+            // Restore canvas state
+            // ctx.restore();
+    
+            // Update scaling and fading effects
+            scale += 0.1; // Gradually increase size
+            opacity -= 0.1; // Gradually fade out
+    
+            // Reset effects for the next countdown
+            if (opacity <= 0) {
+                scale = 1; // Reset size
+                opacity = 1; // Reset opacity
+                countdown--; // Move to the next countdown value
+            }
+    
+            if (countdown < 0) {
+                clearInterval(interval); // Stop the interval
+                callback(); // Start the game loop
+            }
+        }, 60); // Short interval for smoother animations
+    }
+
+    function shakeCamera() {
+        const originalPosition = camera.position.clone();
+        const shakeStrength = 0.2;
+        const shakeDuration = 200; // in milliseconds
+    
+        const startTime = Date.now();
+        function shake() {
+            const elapsed = Date.now() - startTime;
+            if (elapsed < shakeDuration) {
+                camera.position.x = originalPosition.x + ((Math.random() - 1) * 2) * shakeStrength;
+                camera.position.y = originalPosition.y + ((Math.random() - 1) * 2) * shakeStrength;
+                requestAnimationFrame(shake);
+            } else {
+                camera.position.copy(originalPosition); // Reset camera position
+            }
+        }
+        shake();
+    }
+
+    function endGame(winner) {
+        // Stop the game loop
+        cancelAnimationFrame(animationId);
+        // Display the game over screen
+        document.getElementById("gameOver").style.display = "flex";
+        document.getElementById("winner").innerText = `You ${winner}`;
+        document.getElementById("score").innerText = `${score.player1} - ${score.player2}`;
+        canvas.style.display = "none";
+        console.log("GAME OVER !");
     }
 }

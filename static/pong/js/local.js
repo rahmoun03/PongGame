@@ -36,6 +36,7 @@ window.local = () => {
         if (data.type === "start") {
             // Hide the waiting page and start the game
             waitingPage.style.display = "none";
+            document.getElementById("canvasSpace").style.display = "flex";
             canvas.style.display = "block";
             ball = data.ball;
             player = data.players["player1"];
@@ -70,7 +71,11 @@ window.local = () => {
     function draw() {
         ctx.fillStyle = "gray";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+        
+        // center line
+        ctx.fillStyle = "white";
+        ctx.fillRect((canvas.width / 2) - 1, 0, 2, canvas.height);
+        
         // Ball
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
@@ -78,10 +83,6 @@ window.local = () => {
         ctx.fill();
         ctx.closePath();
 
-        // center line
-        ctx.fillStyle = "white";
-        ctx.fillRect((canvas.width / 2) - 1, 0, 2, canvas.height);
-        
 
         // Player paddle'
         ctx.fillStyle = "white";
