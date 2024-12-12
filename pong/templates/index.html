@@ -29,7 +29,17 @@
     <!-- FBXLoader -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script> -->
+    
+    <!-- Postprocessing dependencies -->
+    {% comment %} <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
 
+    <!-- Shaders -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+     {% endcomment %}
     <!-- RGBELoader -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
     
@@ -40,19 +50,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
     
     
-    <div id="menu">
-        <h1 id="gameTitle">Pong Game</h1>
-
-        <button id="ai">AI Mode</button>
-        <div id="multiplayerMenu">
-            <button id="multiplayer">Multiplayer</button>
-            <div id="multiplayerOptions" style="display: none;">
-                <button id="onlineMultiplayer">Online</button>
-                <button id="localMultiplayer">Local</button>
-            </div>
-        </div>
-        <button id="tournament">Tournament Mode</button>
-        <button id="train">Train Mode</button>
+    <div class="canvas_container" id="CC">
+        <div class="game-title">Pong War</div>
+        <canvas id="spaceship"></canvas>
+        <canvas id="pongCanvas" style="display: none;"></canvas>
+        <game-start></game-start>
     </div>
 
     {% comment %} create game over section {% endcomment %}
@@ -68,17 +70,17 @@
         <p>Waiting for opponent...</p>
         <div class="loader"></div>
     </div>
-    <div id="canvasSpace" style="display: none;">
-        <canvas id="pongCanvas" style="display: none;"></canvas>
-    </div>
 
-    <script src="{% static 'pong/js/script.js' %}"></script>
+    <div id="countdown" style="display: none;">
+    </div>
+    
+
+    <script src="{% static 'pong/js/loby.js' %}"></script>
+    <script src="{% static 'pong/js/spaceShip.js' %}"></script>
     <script src="{% static 'pong/js/ai.js' %}"></script>
     <script src="{% static 'pong/js/online.js' %}"></script>
     <script src="{% static 'pong/js/local.js' %}"></script>
     <script src="{% static 'pong/js/game.js' %}"></script>
-
-
 
     <footer>
         created by Ayoub Rahmoun &#169;

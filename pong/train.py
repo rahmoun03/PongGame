@@ -206,7 +206,7 @@ class TrainConsumer(AsyncWebsocketConsumer):
             "dx" : dx,
             "dz": dz
         })
-        
+    
     async def goal(self, event):
         # print(self.role , "recieve .",)
         self.score[event["who"]] += 1
@@ -227,8 +227,10 @@ class TrainConsumer(AsyncWebsocketConsumer):
         self.ball["x"] += self.ball["dx"]
         self.ball["z"] += self.ball["dz"]
 
+
+        WALL_DAMPENING = 0.98
         if self.ball["x"] - self.ball["radius"] <= -(TABLE_WIDTH / 2) + 1 or self.ball["x"] + self.ball["radius"] >= (TABLE_WIDTH / 2) - 1:
-            self.ball["dx"] *= -1
+            self.ball["dx"] *= -WALL_DAMPENING
 
                  # check for paddle and ball collision  PLAYER 1
         if (self.ball["z"] + self.ball["radius"] >= self.player1['z'] - (self.paddle["deep"] / 2)

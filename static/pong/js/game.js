@@ -1,12 +1,13 @@
 window.play = function ()
 {
+    const countdownElement = document.getElementById('countdown');
     const canvas = document.getElementById("pongCanvas");
     const waitingPage = document.getElementById("waiting");
     const online_URL = 'ws://'+window.location.host+'/ws/train/';
     const socket = new WebSocket(online_URL);
     let wsOpen = false;
     const selectedMode = "train";
-    let ball_config, player1_config, player2_config, paddle, score, animationId, role;
+    let ball_config, ball, glowMesh, player1_config, player2_config, paddle, score, animationId, role, composer;
     let playerDirection = 0;
     let player1ScoreMesh, player2ScoreMesh;
     let player1 , player2;
@@ -24,30 +25,33 @@ window.play = function ()
 
     const axesHelper = new THREE.AxesHelper(width / 2);
     scene.add(axesHelper);
+    axesHelper.visible = false;
 
     let stats = new Stats();
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 2000);
     camera.position.set(0, 20, 30);
     scene.add(camera);
 
-    const renderer = new THREE.WebGLRenderer( {canvas, antialias: true} );
-
-    const controls = new THREE.OrbitControls( camera, renderer.domElement );
+    
     const grid = new THREE.GridHelper( 1000, 1000, 0xaaaaaa, 0xaaaaaa );
     grid.material.opacity = 1;
     grid.material.transparent = true;
     grid.position.y = 0;
     scene.add( grid );
     grid.visible = false;
+    let renderer, controls;
+    function initRenderer(){
+
+        renderer = new THREE.WebGLRenderer( {canvas, antialias: true} );
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+        document.body.appendChild( stats.dom );
+        controls = new THREE.OrbitControls( camera, renderer.domElement );
+    }
     
-
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    document.body.appendChild(renderer.domElement);
-    document.body.appendChild( stats.dom );
-
 
     const directionalLight = new THREE.DirectionalLight(0xfdfbd3, 10, 800);
     directionalLight.position.set(0, 500, 50);
@@ -70,6 +74,8 @@ window.play = function ()
         const data = JSON.parse(e.data);
         console.table('data', data)
         if (data.type === "start") {
+            canvas.style.display = "block"
+            initRenderer();
             waitingPage.style.display = "none";
             table_config = data.table;
             paddle = data.paddle;
@@ -84,11 +90,15 @@ window.play = function ()
             playerCreation();
             createScore();
             guiControl();
-            animate();
-            socket.send(JSON.stringify({ 
-                type: "start_game",
-            }));
-            console.log("sending start_game");
+            renderer.render( scene, camera );
+
+            startCountdown(3, () => {
+                animate();
+                socket.send(JSON.stringify({ 
+                    type: "start_game",
+                }));
+                console.log("sending start_game");
+            });
         }
         if (data.type === "update") {
 
@@ -116,7 +126,10 @@ window.play = function ()
         wsOpen = false;
         console.log("WebSocket closed!");
     };
-
+    socket.onerror = () => {
+        wsOpen = false;
+        console.log("Connection Error for WebSocket!");
+    }
 
     document.addEventListener("keydown", movePaddle);
     document.addEventListener("keyup", stopPaddle);
@@ -163,6 +176,12 @@ window.play = function ()
         plane.rotation.x = -Math.PI / 2;
         plane.position.set(0, -0.49, 0);
         TableG.add(plane);
+        tableBound(tableWidth, tableHeight);
+        tableWalls(tableWidth, tableHeight);
+    }
+
+    function tableBound(tableWidth, tableHeight){
+
     //////////////////////////////////////////////////
         tableCenter = new THREE.Mesh(
             new THREE.PlaneGeometry(tableWidth, 0.2),
@@ -190,6 +209,10 @@ window.play = function ()
         boundY.rotation.x = -Math.PI / 2;
         boundY.position.set(0, plane.position.y + 0.01, -(tableHeight / 2));
         TableG.add(boundY);
+    }
+
+
+    function tableWalls(tableWidth, tableHeight) {
 
     /////////////////////////////////////////////
         WallL = new THREE.Mesh(
@@ -353,7 +376,7 @@ window.play = function ()
         animationId = requestAnimationFrame(animate);
         stats.update();
         controls.update();
-
+        // composer.render();
         renderer.render( scene, camera );
         if (wsOpen)
             sendPaddlePosition();
@@ -411,7 +434,7 @@ window.play = function ()
 
     function shakeCamera() {
         const originalPosition = camera.position.clone();
-        const shakeStrength = 0.2;
+        const shakeStrength = 0.3;
         const shakeDuration = 200; // in milliseconds
     
         const startTime = Date.now();
@@ -420,6 +443,7 @@ window.play = function ()
             if (elapsed < shakeDuration) {
                 camera.position.x = originalPosition.x + ((Math.random() - 1) * 2) * shakeStrength;
                 camera.position.y = originalPosition.y + ((Math.random() - 1) * 2) * shakeStrength;
+                camera.position.z = originalPosition.z + ((Math.random() - 1) * 2) * shakeStrength;
                 requestAnimationFrame(shake);
             } else {
                 camera.position.copy(originalPosition); // Reset camera position
@@ -428,7 +452,41 @@ window.play = function ()
         shake();
     }
 
+
+    function startCountdown(duration, onComplete) {
+        countdownElement.style.display = 'flex'; // Hide the countdown element
+
+        let timeLeft = duration;
+        let opacity = 1; // Initial opacity for fading effect
+        let scale = 1; // Initial scale for size animation
+    
+    
+        // Update the countdown every second
+        const interval = setInterval(() => {
+            countdownElement.style.fillStyle = `rgba(255, 255, 255, ${opacity})`; // Fading effect
+            countdownElement.style.font = `${100 * scale}px Freeware`; // Dynamic scaling
+            countdownElement.textContent = timeLeft > 0 ? timeLeft : "GO!"; // Display the time
+            scale += 0.1; // Gradually increase size
+            opacity -= 0.1; // Gradually fade out
+    
+            if (opacity <= 0) {
+                scale = 1; // Reset size
+                opacity = 1; // Reset opacity
+                timeLeft-- ; // Move to the next countdown value
+            }
+
+
+            if (timeLeft < 0) {
+                clearInterval(interval); // Stop the countdown
+                countdownElement.style.display = 'none'; // Hide the countdown element
+                onComplete(); // Trigger the game start
+            }
+        }, 60);
+    }
+
+
     function endGame(winner) {
+        // triggerShake('gameOver');
         // Stop the game loop
         cancelAnimationFrame(animationId);
         // Display the game over screen
