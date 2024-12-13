@@ -15,7 +15,7 @@ TABLE_HIEGHT = 45
 TABLE_WIDTH = 28
 BALL_SPEED = 0.2
 
-class AIConsumer(AsyncWebsocketConsumer):
+class Local1vs1Consumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.is_active = True
@@ -67,7 +67,8 @@ class AIConsumer(AsyncWebsocketConsumer):
             )
                 
         if data["type"] == "update_paddle":
-                self.player1["direction"] = data["direction"]
+            self.player1["direction"] = data["player1_Direction"]
+            self.player2["direction"] = (data["player2_Direction"] * (-1))
 
         if data["type"] == "start_game":
             print(self.scope["user"], "start the game play")
@@ -90,10 +91,7 @@ class AIConsumer(AsyncWebsocketConsumer):
         while self.is_active:
             #update_paddle paddle
             self.move_paddel(self.player1)
-
-            ## for AI move
-
-            ##
+            self.move_paddel(self.player2)
             self.move_ball()
             await self.check_goals()
             if self.score["player1"] >= WINNING_SCORE or self.score["player2"] >= WINNING_SCORE:

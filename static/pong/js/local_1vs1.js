@@ -1,13 +1,13 @@
-window.online_1vs1 = function ()
+window.local_1vs1 = function ()
 {
     const countdownElement = document.getElementById('countdown');
     const canvas = document.getElementById("pongCanvas");
     const waitingPage = document.getElementById("waiting");
-    const online_URL = 'ws://'+window.location.host+'/ws/online_1vs1/';
+    const local_URL = 'ws://'+window.location.host+'/ws/local_1vs1/';
     let wsOpen = false;
-    const selectedMode = "online_1vs1";
-    let ball_config, ball, glowMesh, player1_config, player2_config, paddle, score, animationId, role, composer;
-    let playerDirection = 0;
+    const selectedMode = "local_1vs1";
+    let ball_config, ball, player1_config, player2_config, paddle, score, animationId, role, composer;
+    let player2Direction = 0, player1Direction = 0;
     let player1ScoreMesh, player2ScoreMesh;
     let player1 , player2;
     let renderer, controls;
@@ -22,9 +22,10 @@ window.online_1vs1 = function ()
     
     let width = window.innerWidth * 0.8;
     let height = window.innerHeight * 0.8;
-
     canvas.width = width;
     canvas.height = height;
+
+    console.log("sizes : ", width, height);
     
     const axesHelper = new THREE.AxesHelper(width / 2);
     scene.add(axesHelper);
@@ -32,7 +33,7 @@ window.online_1vs1 = function ()
     
     let stats = new Stats();
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 2000);
-    camera.position.set(0, 30, 35);
+    camera.position.set(0, 30, 30);
     scene.add(camera);
     
     
@@ -62,13 +63,13 @@ window.online_1vs1 = function ()
     directionalLight.visible = false;
     
     
-    const socket = new WebSocket(online_URL);
+    const socket = new WebSocket(local_URL);
     // Handle WebSocket events
     socket.onopen = () => {
         wsOpen = true;
         console.log("Connected to the WebSocket!");
         socket.send(JSON.stringify({
-			type: "join_room",
+			type: "countdown",
 			width: width,
 			height: height
 		}));
@@ -77,19 +78,16 @@ window.online_1vs1 = function ()
         const data = JSON.parse(e.data);
         console.table('data', data)
         if (data.type === "start") {
-            canvas.style.display = "block"
-            initRenderer();
+            canvas.style.display = "block";
             document.getElementById('CC').style.display = 'none';
-            document.getElementById('spaceship').style.display = 'none';
-            waitingPage.style.display = "none";
+            initRenderer();
             table_config = data.table;
             paddle = data.paddle;
             player1_config = data.player1;
             player2_config = data.player2;
             ball_config = data.ball;
             score = data.score;
-            role = data.role;
-            updateCameraPosition(role);
+
             table();
             ballCreation();
             playerCreation();
@@ -137,19 +135,22 @@ window.online_1vs1 = function ()
 
     document.addEventListener("keydown", movePaddle);
     document.addEventListener("keyup", stopPaddle);
+
     function movePaddle(e)
     {
-        console.log("move paddle", e.key);
-        if(e.key === 'ArrowLeft') playerDirection = -1;
-        if(e.key === 'ArrowRight') playerDirection = 1;
+        if(e.key === 'ArrowLeft') player2Direction = -1;
+        if(e.key === 'ArrowRight') player2Direction = 1;
+        if(e.key === 'a') player1Direction = -1;
+        if(e.key === 'd') player1Direction = 1;
     }
+
     function stopPaddle(e)
     {
         if (e.key === "ArrowLeft" || e.key === "ArrowRight")
-            playerDirection = 0;
+            player2Direction = 0;
+        if (e.key === "a" || e.key === "d")
+            player1Direction = 0;
     }
-
-
     window.addEventListener("resize", () => {
         width = window.innerWidth * 0.8;
         height = window.innerHeight * 0.8;
@@ -387,10 +388,11 @@ window.online_1vs1 = function ()
     }
 
     function sendPaddlePosition() {
-        console.log("sending  data ...");
+
         socket.send(JSON.stringify({
             type: "update_paddle",
-            direction : playerDirection,
+            player1_Direction : player1Direction,
+            player2_Direction : player2Direction,
             mode: selectedMode,
         }));
     }

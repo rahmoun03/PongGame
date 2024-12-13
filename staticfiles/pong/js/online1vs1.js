@@ -3,36 +3,38 @@ window.online_1vs1 = function ()
     const countdownElement = document.getElementById('countdown');
     const canvas = document.getElementById("pongCanvas");
     const waitingPage = document.getElementById("waiting");
-    const online_URL = 'ws://'+window.location.host+'/ws/train/';
-    const socket = new WebSocket(online_URL);
+    const online_URL = 'ws://'+window.location.host+'/ws/online_1vs1/';
     let wsOpen = false;
-    const selectedMode = "train";
+    const selectedMode = "online_1vs1";
     let ball_config, ball, glowMesh, player1_config, player2_config, paddle, score, animationId, role, composer;
     let playerDirection = 0;
     let player1ScoreMesh, player2ScoreMesh;
     let player1 , player2;
     let renderer, controls;
-
+    
     const gui = new dat.GUI();
     
     const TableG = new THREE.Group();
     const FontLoader = new THREE.FontLoader();
-
+    
     let tableWidth, tableHeight;
     const scene = new THREE.Scene();
-
+    
     let width = window.innerWidth * 0.8;
     let height = window.innerHeight * 0.8;
 
+    canvas.width = width;
+    canvas.height = height;
+    
     const axesHelper = new THREE.AxesHelper(width / 2);
     scene.add(axesHelper);
     axesHelper.visible = false;
-
+    
     let stats = new Stats();
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 2000);
     camera.position.set(0, 30, 35);
     scene.add(camera);
-
+    
     
     const grid = new THREE.GridHelper( 1000, 1000, 0xaaaaaa, 0xaaaaaa );
     grid.material.opacity = 1;
@@ -41,7 +43,7 @@ window.online_1vs1 = function ()
     // scene.add( grid );
     grid.visible = false;
     function initRenderer(){
-
+        
         renderer = new THREE.WebGLRenderer( {canvas, antialias: true} );
         renderer.setSize(width, height);
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -52,22 +54,23 @@ window.online_1vs1 = function ()
         controls = new THREE.OrbitControls( camera, renderer.domElement );
     }
     
-
+    
     const directionalLight = new THREE.DirectionalLight(0xfdfbd3, 10, 800);
     directionalLight.position.set(0, 500, 50);
     directionalLight.castShadow = true;
     scene.add(directionalLight);
     directionalLight.visible = false;
-
-
+    
+    
+    const socket = new WebSocket(online_URL);
     // Handle WebSocket events
     socket.onopen = () => {
         wsOpen = true;
         console.log("Connected to the WebSocket!");
         socket.send(JSON.stringify({
 			type: "join_room",
-			width: canvas.width,
-			height: canvas.height
+			width: width,
+			height: height
 		}));
     };
     socket.onmessage = (e) => {

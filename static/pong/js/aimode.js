@@ -4,7 +4,6 @@ window.ai_mode = function ()
     const canvas = document.getElementById("pongCanvas");
     const waitingPage = document.getElementById("waiting");
     const ai_URL = 'ws://'+window.location.host+'/ws/ai/';
-    const socket = new WebSocket(ai_URL);
     let wsOpen = false;
     const selectedMode = "AI MODE";
     let ball_config, ball, player1_config, player2_config, paddle, score, animationId, role, composer;
@@ -12,27 +11,31 @@ window.ai_mode = function ()
     let player1ScoreMesh, player2ScoreMesh;
     let player1 , player2;
     let renderer, controls;
-
+    
     const gui = new dat.GUI();
     
     const TableG = new THREE.Group();
     const FontLoader = new THREE.FontLoader();
-
+    
     let tableWidth, tableHeight;
     const scene = new THREE.Scene();
-
+    
     let width = window.innerWidth * 0.8;
     let height = window.innerHeight * 0.8;
+    canvas.width = width;
+    canvas.height = height;
 
+    console.log("sizes : ", width, height);
+    
     const axesHelper = new THREE.AxesHelper(width / 2);
     scene.add(axesHelper);
     axesHelper.visible = false;
-
+    
     let stats = new Stats();
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 2000);
     camera.position.set(0, 30, 30);
     scene.add(camera);
-
+    
     
     const grid = new THREE.GridHelper( 1000, 1000, 0xaaaaaa, 0xaaaaaa );
     grid.material.opacity = 1;
@@ -41,7 +44,7 @@ window.ai_mode = function ()
     // scene.add( grid );
     grid.visible = false;
     function initRenderer(){
-
+        
         renderer = new THREE.WebGLRenderer( {canvas, antialias: true} );
         renderer.setSize(width, height);
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -52,22 +55,23 @@ window.ai_mode = function ()
         controls = new THREE.OrbitControls( camera, renderer.domElement );
     }
     
-
+    
     const directionalLight = new THREE.DirectionalLight(0xfdfbd3, 10, 800);
     directionalLight.position.set(0, 500, 50);
     directionalLight.castShadow = true;
     scene.add(directionalLight);
     directionalLight.visible = false;
-
-
+    
+    
+    const socket = new WebSocket(ai_URL);
     // Handle WebSocket events
     socket.onopen = () => {
         wsOpen = true;
         console.log("Connected to the WebSocket!");
         socket.send(JSON.stringify({
 			type: "countdown",
-			width: canvas.width,
-			height: canvas.height
+			width: width,
+			height: height
 		}));
     };
     socket.onmessage = (e) => {
@@ -75,10 +79,8 @@ window.ai_mode = function ()
         console.table('data', data)
         if (data.type === "start") {
             canvas.style.display = "block";
-            initRenderer();
             document.getElementById('CC').style.display = 'none';
-            document.getElementById('spaceship').style.display = 'none';
-            // waitingPage.style.display = "none";
+            initRenderer();
             table_config = data.table;
             paddle = data.paddle;
             player1_config = data.player1;

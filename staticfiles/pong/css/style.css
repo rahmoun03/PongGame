@@ -8,6 +8,16 @@
 }
 
 
+:root {
+    --blue: linear-gradient(0deg, 
+    rgb(4, 28,68, 1) 100%, 
+    rgba(56, 75, 112, 0.2) 100%
+     );;
+    --red: rgba(228, 5, 47, 1);
+  
+    --bluenes : ;
+}
+
 body, html {
     height: 100vh;
     width: 100vw;
@@ -52,11 +62,14 @@ body, html {
     padding: 5%;
     font-family: "Pong War", "Freeware";
     letter-spacing: 2px;
-    font-size: 128px;
+    font-size: 120px;
     margin-bottom: 20px;
     text-align: center;
-    color: rgb(56, 75, 112);
-    text-shadow: 2px 2px 5px rgba(255, 255, 255, 1);
+    color: var(--red);
+    text-shadow: 2px 0 white, -2px 0 white, 0 2px white, 0 -2px white,
+             1px 1px white, -1px -1px white, 1px -1px white, -1px 1px white;
+    /* color: #F5ED17; */
+    text-shadow: 2px 2px 2px rgba(255, 255, 255, 1);
 }
 
 footer {

@@ -3,7 +3,7 @@ class GameStart extends HTMLElement {
   public
     section = 0;
     switchButton = new Audio('static/pong/sound/switch.mp3');
-    click = new Audio('static/sound/menu-click-89198.mp3');
+    click = new Audio('static/pong/sound/menu-click-89198.mp3');
   // this.section = {this.toggleMultiplayerOptions, this.toggleModes};
   constructor() {
     super();
@@ -113,7 +113,7 @@ class GameStart extends HTMLElement {
     switch (buttonType) {
       case 'AI Mode':
         this.remove();
-        document.getElementById('CC').style.display = 'none';
+        document.getElementById('game-title').style.display = 'none';
         document.getElementById('spaceship').style.display = 'none';
         window.ai_mode();
         break;
@@ -124,7 +124,6 @@ class GameStart extends HTMLElement {
       case 'Online':
         this.section = 2;
         this.remove();
-        // document.getElementById('CC').style.display = 'none';
         document.getElementById('game-title').style.display = 'none';
         document.getElementById('waiting').style.display = 'flex';
         window.online_1vs1();
@@ -136,26 +135,6 @@ class GameStart extends HTMLElement {
         document.getElementById('CC').style.display = 'none';
         window.local_1vs1();
         break;
-      // case 'Classic':
-      //   console.log('classic');
-      //   this.remove();
-      //   document.getElementById('CC').style.display = 'none';	
-      //   window.play();
-      //   break;
-      // case 'StarWar':
-      //   this.remove();
-      //   document.getElementById('CC').style.display = 'none';	
-      //   console.log('starWar');
-      //   window.starWar();
-      //   break;
-      // case 'Time Attack':
-      //   console.log('Time Attack');
-      //   break;
-      // case 'test':
-      //   console.log('test');
-      //   document.getElementById('CC').style.display = 'none';
-      //   window.test();
-      //   break;
       case 'Tournament':
         console.log('Tournament');
         break;
@@ -172,13 +151,6 @@ class GameStart extends HTMLElement {
     console.log(this.section);
   }
 
-  // container.appendChild(aiButton);                     1
-  // container.appendChild(multiplayerButton);                  2
-  // container.appendChild(onlineButton);                            3
-  // container.appendChild(localButton);                                  4
-  // container.appendChild(tournamentButton);                               5
-  // container.appendChild(backButton);                                      6
-
   toggleMultiplayerOptions() {
     this.shadowRoot.querySelector('button:nth-child(5)').classList.toggle('hidden');
     this.shadowRoot.querySelector('button:nth-child(1)').classList.toggle('hidden');
@@ -191,7 +163,6 @@ class GameStart extends HTMLElement {
     this.shadowRoot.querySelector('button:nth-child(3)').classList.toggle('hidden');
     this.shadowRoot.querySelector('button:nth-child(4)').classList.toggle('hidden');
     this.shadowRoot.querySelector('button:nth-child(6)').classList.toggle('hidden');
-    // this.shadowRoot.querySelector('button:nth-child(7)').classList.toggle('hidden');
   }
 }
 
