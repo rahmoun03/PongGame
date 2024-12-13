@@ -115,7 +115,7 @@ class GameStart extends HTMLElement {
         this.remove();
         document.getElementById('CC').style.display = 'none';
         document.getElementById('spaceship').style.display = 'none';
-        window.ai();
+        window.ai_mode();
         break;
       case 'Multiplayer':
         this.toggleMultiplayerOptions();
@@ -124,17 +124,17 @@ class GameStart extends HTMLElement {
       case 'Online':
         this.section = 2;
         this.remove();
-        document.getElementById('CC').style.display = 'none';
-        document.getElementById('spaceship').style.display = 'none';
+        // document.getElementById('CC').style.display = 'none';
+        document.getElementById('game-title').style.display = 'none';
         document.getElementById('waiting').style.display = 'flex';
-        window.play();
+        window.online_1vs1();
         break;
       case 'Local':
         this.section = 2;
         this.remove();
         document.getElementById('spaceship').style.display = 'none';
         document.getElementById('CC').style.display = 'none';
-        window.local();
+        window.local_1vs1();
         break;
       // case 'Classic':
       //   console.log('classic');

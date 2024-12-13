@@ -1,13 +1,13 @@
-window.online_1vs1 = function ()
+window.ai_mode = function ()
 {
     const countdownElement = document.getElementById('countdown');
     const canvas = document.getElementById("pongCanvas");
     const waitingPage = document.getElementById("waiting");
-    const online_URL = 'ws://'+window.location.host+'/ws/train/';
-    const socket = new WebSocket(online_URL);
+    const ai_URL = 'ws://'+window.location.host+'/ws/ai/';
+    const socket = new WebSocket(ai_URL);
     let wsOpen = false;
-    const selectedMode = "train";
-    let ball_config, ball, glowMesh, player1_config, player2_config, paddle, score, animationId, role, composer;
+    const selectedMode = "AI MODE";
+    let ball_config, ball, player1_config, player2_config, paddle, score, animationId, role, composer;
     let playerDirection = 0;
     let player1ScoreMesh, player2ScoreMesh;
     let player1 , player2;
@@ -30,7 +30,7 @@ window.online_1vs1 = function ()
 
     let stats = new Stats();
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 2000);
-    camera.position.set(0, 20, 30);
+    camera.position.set(0, 30, 30);
     scene.add(camera);
 
     
@@ -65,7 +65,7 @@ window.online_1vs1 = function ()
         wsOpen = true;
         console.log("Connected to the WebSocket!");
         socket.send(JSON.stringify({
-			type: "join_room",
+			type: "countdown",
 			width: canvas.width,
 			height: canvas.height
 		}));
@@ -74,19 +74,18 @@ window.online_1vs1 = function ()
         const data = JSON.parse(e.data);
         console.table('data', data)
         if (data.type === "start") {
-            canvas.style.display = "block"
+            canvas.style.display = "block";
             initRenderer();
             document.getElementById('CC').style.display = 'none';
             document.getElementById('spaceship').style.display = 'none';
-            waitingPage.style.display = "none";
+            // waitingPage.style.display = "none";
             table_config = data.table;
             paddle = data.paddle;
             player1_config = data.player1;
             player2_config = data.player2;
             ball_config = data.ball;
             score = data.score;
-            role = data.role;
-            updateCameraPosition(role);
+
             table();
             ballCreation();
             playerCreation();

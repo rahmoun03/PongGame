@@ -51,7 +51,7 @@
     
     
     <div class="canvas_container" id="CC">
-        <div class="game-title">Pong War</div>
+        <div id="game-title">Pong War</div>
         <canvas id="spaceship"></canvas>
         <canvas id="pongCanvas" style="display: none;"></canvas>
         <game-start></game-start>
@@ -67,22 +67,52 @@
 
     {% comment %} Waiting for opponent section {% endcomment %}
     <div id="waiting" style="display: none;">
-        <p>Waiting for opponent...</p>
-        <div class="loader"></div>
+        <div class="left_user">
+            <div class="user_info">
+                <p>username</p>
+                <div class="user_image"></div>
+            </div>
+        </div>
+        <div class="midel_info">
+            <p>Waiting for opponent...</p>
+            <div class="loader"></div>
+        </div>
+        <div class="right_user">
+            <div class="user_info">
+                <p>username</p>
+                <div class="user_image"></div>
+            </div>
+        </div>
     </div>
 
     <div id="countdown" style="display: none;">
     </div>
     
+    <!-- Tournament -->
+    <div id="registration" style="display: none;">
+        <h2>Tournament Registration</h2>
+        <form id="registrationForm">
+            <input type="text" name="alias" placeholder="Enter your alias" required />
+            <button type="submit">Register</button>
+        </form>
+        <p id="playerList"></p>
+    </div>
+    <div id="tournament" style="display: none;">
+        <h2>Tournament Matches</h2>
+        <div id="current-match"></div>
+        <h3>Upcoming Matches</h3>
+        <ul id="match-schedule"></ul>
+    </div>
+
 
     <script src="{% static 'pong/js/loby.js' %}"></script>
     <script src="{% static 'pong/js/spaceShip.js' %}"></script>
-    <script src="{% static 'pong/js/ai.js' %}"></script>
+    <script src="{% static 'pong/js/aimode.js' %}"></script>
     <script src="{% static 'pong/js/online.js' %}"></script>
     <script src="{% static 'pong/js/local.js' %}"></script>
-    <script src="{% static 'pong/js/game.js' %}"></script>
+    <script src="{% static 'pong/js/online1vs1.js' %}"></script>
 
     <footer>
-        created by Ayoub Rahmoun &#169;
+        PongWars game by arahmoun, 2024 c. &#169;
     </footer>
 {% endblock %}

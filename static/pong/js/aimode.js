@@ -1,16 +1,17 @@
-window.play = function ()
+window.ai_mode = function ()
 {
     const countdownElement = document.getElementById('countdown');
     const canvas = document.getElementById("pongCanvas");
     const waitingPage = document.getElementById("waiting");
-    const online_URL = 'ws://'+window.location.host+'/ws/train/';
-    const socket = new WebSocket(online_URL);
+    const ai_URL = 'ws://'+window.location.host+'/ws/ai/';
+    const socket = new WebSocket(ai_URL);
     let wsOpen = false;
-    const selectedMode = "train";
-    let ball_config, ball, glowMesh, player1_config, player2_config, paddle, score, animationId, role, composer;
+    const selectedMode = "AI MODE";
+    let ball_config, ball, player1_config, player2_config, paddle, score, animationId, role, composer;
     let playerDirection = 0;
     let player1ScoreMesh, player2ScoreMesh;
     let player1 , player2;
+    let renderer, controls;
 
     const gui = new dat.GUI();
     
@@ -29,17 +30,16 @@ window.play = function ()
 
     let stats = new Stats();
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 2000);
-    camera.position.set(0, 20, 30);
+    camera.position.set(0, 30, 30);
     scene.add(camera);
 
     
     const grid = new THREE.GridHelper( 1000, 1000, 0xaaaaaa, 0xaaaaaa );
     grid.material.opacity = 1;
     grid.material.transparent = true;
-    grid.position.y = 0;
-    scene.add( grid );
+    grid.position.y = -1;
+    // scene.add( grid );
     grid.visible = false;
-    let renderer, controls;
     function initRenderer(){
 
         renderer = new THREE.WebGLRenderer( {canvas, antialias: true} );
@@ -65,7 +65,7 @@ window.play = function ()
         wsOpen = true;
         console.log("Connected to the WebSocket!");
         socket.send(JSON.stringify({
-			type: "join_room",
+			type: "countdown",
 			width: canvas.width,
 			height: canvas.height
 		}));
@@ -74,23 +74,23 @@ window.play = function ()
         const data = JSON.parse(e.data);
         console.table('data', data)
         if (data.type === "start") {
-            canvas.style.display = "block"
+            canvas.style.display = "block";
             initRenderer();
-            waitingPage.style.display = "none";
+            document.getElementById('CC').style.display = 'none';
+            document.getElementById('spaceship').style.display = 'none';
+            // waitingPage.style.display = "none";
             table_config = data.table;
             paddle = data.paddle;
             player1_config = data.player1;
             player2_config = data.player2;
             ball_config = data.ball;
             score = data.score;
-            role = data.role;
-            updateCameraPosition(role);
+
             table();
             ballCreation();
             playerCreation();
             createScore();
             guiControl();
-            renderer.render( scene, camera );
 
             startCountdown(3, () => {
                 animate();
@@ -333,7 +333,6 @@ window.play = function ()
             player1ScoreMesh.position.set(-3.5, -0.4, 14);
             player1ScoreMesh.rotation.x = -Math.PI / 2;
             scene.add(player1ScoreMesh);
-            // console.log("Player Score: ", player1ScoreMesh);
 
             const player2Score = new THREE.TextGeometry(`${score.player2}`, {
                 font: font,
@@ -341,10 +340,10 @@ window.play = function ()
                 height: 0.01
             });
             player2ScoreMesh = new THREE.Mesh(player2Score, new THREE.MeshBasicMaterial({color: "white"}));
-            player2ScoreMesh.position.set(-3.5, -0.4, -14);
+            player2ScoreMesh.position.set(3.5, -0.4, -14);
+            player2ScoreMesh.rotation.y = Math.PI;
             player2ScoreMesh.rotation.x = Math.PI / 2;
             scene.add(player2ScoreMesh);
-            // console.log("Player Score: ", player2ScoreMesh);
         });
     }
 
@@ -356,9 +355,9 @@ window.play = function ()
 
     function updateCameraPosition(role) {
         if (role === "player1")
-            camera.position.set(0, 20, 35);
+            camera.position.set(0, 30, 35);
         if (role === "player2")
-            camera.position.set(0, 20, -35);
+            camera.position.set(0, 30, -35);
     }
 
     function guiControl(){
@@ -392,46 +391,6 @@ window.play = function ()
         }));
     }
 
-    function startCountdown(callback) {
-        let countdown = 3; // Start at 3
-        let opacity = 1; // Initial opacity for fading effect
-        let scale = 1; // Initial scale for size animation
-    
-        const interval = setInterval(() => {
-    
-            // Save canvas state
-            // ctx.save();
-            
-            // Set text properties
-            // ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`; // Fading effect
-            // ctx.font = `${100 * scale}px Arial`; // Dynamic scaling
-            // ctx.textAlign = "center";
-            // ctx.textBaseline = "middle";
-            
-            // Render countdown or "GO!"
-            // ctx.fillText(countdown > 0 ? countdown : "GO!", canvas.width / 2, canvas.height / 2);
-            
-            // Restore canvas state
-            // ctx.restore();
-    
-            // Update scaling and fading effects
-            scale += 0.1; // Gradually increase size
-            opacity -= 0.1; // Gradually fade out
-    
-            // Reset effects for the next countdown
-            if (opacity <= 0) {
-                scale = 1; // Reset size
-                opacity = 1; // Reset opacity
-                countdown--; // Move to the next countdown value
-            }
-    
-            if (countdown < 0) {
-                clearInterval(interval); // Stop the interval
-                callback(); // Start the game loop
-            }
-        }, 60); // Short interval for smoother animations
-    }
-
     function shakeCamera() {
         const originalPosition = camera.position.clone();
         const shakeStrength = 0.3;
@@ -463,8 +422,10 @@ window.play = function ()
     
         // Update the countdown every second
         const interval = setInterval(() => {
+            renderer.render( scene, camera );
+
             countdownElement.style.fillStyle = `rgba(255, 255, 255, ${opacity})`; // Fading effect
-            countdownElement.style.font = `${100 * scale}px Freeware`; // Dynamic scaling
+            countdownElement.style.font = `${100 * scale}px "Pong War", "Freeware"`; // Dynamic scaling
             countdownElement.textContent = timeLeft > 0 ? timeLeft : "GO!"; // Display the time
             scale += 0.1; // Gradually increase size
             opacity -= 0.1; // Gradually fade out

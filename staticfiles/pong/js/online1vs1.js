@@ -30,7 +30,7 @@ window.online_1vs1 = function ()
 
     let stats = new Stats();
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 2000);
-    camera.position.set(0, 20, 30);
+    camera.position.set(0, 30, 35);
     scene.add(camera);
 
     

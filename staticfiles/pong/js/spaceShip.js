@@ -26,7 +26,7 @@ window.spaceShip = function () {
 
     scene.add(light);
 
-    camera.position.set(2, 0.4, 10);
+    camera.position.set(4, 0.4, 10);
 
     let blackHole = new THREE.Object3D();
 
@@ -95,7 +95,7 @@ window.spaceShip = function () {
     const animate = function () {
         requestAnimationFrame(animate);
 
-        blackHole.rotation.y += 0.001;
+        blackHole.rotation.y += 0.0005;
         animateParticles();
         controls.update();
         renderer.render(scene, camera);
