@@ -9,11 +9,26 @@ from channels.generic.websocket import AsyncWebsocketConsumer # type: ignore
 WINNING_SCORE = 5
 BALL_SPEED_INCREASE = 1.05
 FRAME_DELAY = 0.015
-PADDLE_HEIGHT_RATIO = 1 
-PADDLE_WIDTH_RATIO = 4 
+PADDLE_HEIGHT = 0.5
+PADDLE_DEEP = 0.5
+PADDLE_WIDTH = 4 
 TABLE_HIEGHT = 45
 TABLE_WIDTH = 28
 BALL_SPEED = 0.2
+
+class AIState:
+    IDLE = "idle"
+    CHASE = "chase"
+    RECOVER = "recover"
+
+def decide_ai_state(ball):
+    if ball["z"] > (TABLE_HIEGHT / 4):  # Ball far away
+        return AIState.IDLE
+    elif ball["z"] <= (TABLE_HIEGHT / 4) and ball["dz"] < 0:  # Ball moving toward AI
+        return AIState.CHASE
+    else:
+        return AIState.RECOVER
+
 
 class AIConsumer(AsyncWebsocketConsumer):
 
@@ -48,7 +63,7 @@ class AIConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
 
         data = json.loads(text_data)
-        print("data {", data, "}")
+        # print("data {", data, "}")
         if data["type"] == "countdown":
             self.width = data["width"]
             self.height = data["height"]
@@ -72,6 +87,7 @@ class AIConsumer(AsyncWebsocketConsumer):
         if data["type"] == "start_game":
             print(self.scope["user"], "start the game play")
             asyncio.create_task(self.start_game())
+            asyncio.create_task(self.ai_logic())
 
     async def start(self, event):
         await self.send(text_data=json.dumps({
@@ -90,9 +106,8 @@ class AIConsumer(AsyncWebsocketConsumer):
         while self.is_active:
             #update_paddle paddle
             self.move_paddel(self.player1)
-
-            ## for AI move
-
+            self.move_paddel(self.player2)
+            
             ##
             self.move_ball()
             await self.check_goals()
@@ -138,6 +153,47 @@ class AIConsumer(AsyncWebsocketConsumer):
         if player["x"] > (TABLE_WIDTH / 2) - (self.paddle["width"] / 2) - 1:
             player["x"] = (TABLE_WIDTH / 2) - (self.paddle["width"]  / 2) - 1
 
+    async def ai_logic(self):
+        while self.is_active:
+            if decide_ai_state(self.ball) == AIState.CHASE:
+                target_x = self.predict_ball_position()
+                target_x = self.add_imperfection(target_x)
+                self.simulate_keypress(self.player2, target_x)
+                print(f"GO TO : {target_x}")
+            elif decide_ai_state(self.ball) == AIState.IDLE:
+                self.player2["direction"] = 0
+            await asyncio.sleep(1)  # Refresh view every second
+
+    def add_imperfection(self, target_x):
+        error_margin = random.uniform(-1, 1)  # Add randomness to prediction
+        return target_x + error_margin
+
+    def simulate_keypress(self, player, target_x):
+        if player["x"] < target_x :
+            player["direction"] = 1  # Simulate "right arrow" keypress
+        elif player["x"] > target_x:
+            player["direction"] = -1  # Simulate "left arrow" keypress
+        else:
+            player["direction"] = 0  # No keypress
+
+        if player["x"] - (PADDLE_WIDTH / 2) < target_x < player["x"] + (PADDLE_WIDTH / 2):
+            player["direction"] = 0
+
+    def predict_ball_position(self):
+        future_x = self.ball["x"]
+        future_z = self.ball["z"]
+        dx = self.ball["dx"]
+        dz = self.ball["dz"]
+
+        while abs(future_z) < (TABLE_HIEGHT / 2):
+            future_x += dx
+            future_z += dz
+
+            # Handle wall collisions
+            if future_x - self.ball["radius"] <= -(TABLE_WIDTH / 2) + 1 or future_x + self.ball["radius"] >= (TABLE_WIDTH / 2) - 1:
+                dx *= -1  # Reverse direction on wall hit
+        return future_x
+    
     async def check_goals(self):
         # print(self.role , ": was here")
         if self.ball["z"] + self.ball["radius"] >= (TABLE_HIEGHT / 2):
@@ -220,9 +276,9 @@ class AIConsumer(AsyncWebsocketConsumer):
 
     async def restart_game(self):
 
-        self.paddle["height"] = 0.5  # Dynamic height based on screen size
-        self.paddle["width"] = 5  # Dynamic width based on screen size
-        self.paddle["deep"] = 0.5
+        self.paddle["height"] = PADDLE_HEIGHT  # Dynamic height based on screen size
+        self.paddle["width"] = PADDLE_WIDTH  # Dynamic width based on screen size
+        self.paddle["deep"] = PADDLE_DEEP
         ball_radius = 0.5  # Dynamic ball radius
         self.speed = 0.5
         self.ball_dx = BALL_SPEED  # Adjust ball speed according to width
