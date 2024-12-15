@@ -154,7 +154,10 @@ class AIConsumer(AsyncWebsocketConsumer):
             player["x"] = (TABLE_WIDTH / 2) - (self.paddle["width"]  / 2) - 1
 
     async def ai_logic(self):
+        x = 1 
         while self.is_active:
+            print(x)
+            x += 1
             if decide_ai_state(self.ball) == AIState.CHASE:
                 target_x = self.predict_ball_position()
                 target_x = self.add_imperfection(target_x)
@@ -180,18 +183,21 @@ class AIConsumer(AsyncWebsocketConsumer):
             player["direction"] = 0
 
     def predict_ball_position(self):
-        future_x = self.ball["x"]
         future_z = self.ball["z"]
+        future_x = self.ball["x"]
         dx = self.ball["dx"]
         dz = self.ball["dz"]
 
-        while abs(future_z) < (TABLE_HIEGHT / 2):
-            future_x += dx
-            future_z += dz
+        # while abs(future_z) < TABLE_HIEGHT / 2:
+        future_x = future_x + (dx / abs(dz)) * abs(future_z - self.player2["z"])
+            # if abs(future_x) + self.ball["radius"] >= (TABLE_WIDTH / 2) - 1:
+            #     time_to_wall = ((TABLE_WIDTH / 2 - 1) - abs(future_x)) / abs(dx)
+            #     future_z += dz * time_to_wall
+            #     print(f"HIT the Wall in : {future_z}")
+            #     dx *= -1
+            # if self.ball["z"] < self.player2["z"]:
+            #     break
 
-            # Handle wall collisions
-            if future_x - self.ball["radius"] <= -(TABLE_WIDTH / 2) + 1 or future_x + self.ball["radius"] >= (TABLE_WIDTH / 2) - 1:
-                dx *= -1  # Reverse direction on wall hit
         return future_x
     
     async def check_goals(self):
@@ -235,6 +241,7 @@ class AIConsumer(AsyncWebsocketConsumer):
 
         WALL_DAMPENING = 1
         if self.ball["x"] - self.ball["radius"] <= -(TABLE_WIDTH / 2) + 1 or self.ball["x"] + self.ball["radius"] >= (TABLE_WIDTH / 2) - 1:
+            print("hit the wall at : ", self.ball["z"])
             self.ball["dx"] *= -WALL_DAMPENING
 
                  # check for paddle and ball collision  PLAYER 1
