@@ -2,6 +2,7 @@ window.ai_mode = function ()
 {
     const countdownElement = document.getElementById('countdown');
     const canvas = document.getElementById("pongCanvas");
+    // const Parent = document.getElementById("CC");
     const waitingPage = document.getElementById("waiting");
     const ai_URL = 'ws://'+window.location.host+'/ws/ai/';
     let wsOpen = false;
@@ -20,10 +21,13 @@ window.ai_mode = function ()
     let tableWidth, tableHeight;
     const scene = new THREE.Scene();
     
-    let width = window.innerWidth * 0.8;
-    let height = window.innerHeight * 0.8;
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = document.documentElement.clientWidth;
+    canvas.height = document.documentElement.clientHeight;
+    
+    let width = canvas.width ;
+    let height = canvas.height ;
+    // canvas.width = "100%";
+    // canvas.height = "100%";
 
     console.log("sizes : ", width, height);
     
@@ -69,10 +73,10 @@ window.ai_mode = function ()
         wsOpen = true;
         console.log("Connected to the WebSocket!");
         socket.send(JSON.stringify({
-			type: "countdown",
+            type: "countdown",
 			width: width,
 			height: height
-		}));
+        }));
     };
     socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
@@ -149,8 +153,11 @@ window.ai_mode = function ()
 
 
     window.addEventListener("resize", () => {
-        width = window.innerWidth * 0.8;
-        height = window.innerHeight * 0.8;
+        canvas.width = document.documentElement.clientWidth;
+        canvas.height = document.documentElement.clientHeight;
+        
+        width = canvas.width ;
+        height = canvas.height ;
         camera.aspect = width / height;
         renderer.setSize(width , height);
         camera.updateProjectionMatrix();

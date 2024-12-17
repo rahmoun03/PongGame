@@ -49,10 +49,12 @@
     <!-- lil-gui -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
     
     <div class="canvas_container" id="CC">
         <div id="game-title">Pong Wars</div>
-        <canvas id="spaceship"></canvas>
+        {% comment %} <canvas id="spaceship"></canvas> {% endcomment %}
         <canvas id="pongCanvas" style="display: none;"></canvas>
         <game-start></game-start>
     </div>
@@ -89,29 +91,70 @@
     </div>
     
     <!-- Tournament -->
-    <div id="registration" style="display: none;">
-        <h2>Tournament Registration</h2>
-        <form id="registrationForm">
-            <input type="text" name="alias" placeholder="Enter your alias" required />
-            <button type="submit">Register</button>
-        </form>
-        <p id="playerList"></p>
-    </div>
-    <div id="tournament" style="display: none;">
-        <h2>Tournament Matches</h2>
-        <div id="current-match"></div>
-        <h3>Upcoming Matches</h3>
-        <ul id="match-schedule"></ul>
+    <div id="tournament-section" style="display: none;">
+        <div class="tournament-headers">
+            <h2>Tournament</h2>
+            <div class="tournament-feilds">
+                <h3>create</h3>
+                <h3>join</h3>
+            </div>
+        </div>
+    
+        <!-- Create Tournament Section -->
+        <div id="create-tournament">
+            <h3>Create Tournament</h3>
+            <form id="create-tournament-form">
+                <label for="alias">Alias Name:</label>
+                <input type="text" id="create-alias" placeholder="Enter your alias" required>
+                <br>
+                <label for="tournament-name">Tournament Name:</label>
+                <input type="text" id="tournament-name" placeholder="Enter tournament name" required>
+                <br>
+                <button type="button" id="create-button">Create Tournament</button>
+            </form>
+        </div>
+    
+    
+        <!-- Join Tournament Section -->
+        <div id="join-tournament" style="display: none;">
+            <h3>Join Tournament</h3>
+            <label for="tournament-list">Available Tournaments:</label>
+            <ul id="tournament-list">
+                <!-- Tournament options will be dynamically added -->
+            </ul>
+            <br>
+            <label for="join-alias">Alias Name:</label>
+            <input type="text" id="join-alias" placeholder="Enter your alias" required>
+            <br>
+            <button type="button" id="join-button">Join Tournament</button>
+        </div>
     </div>
 
-
+    <div id="matchmaking-section" style="display: none;">
+        <h3>Matchmaking</h3>
+        <div id="participant-list">
+            <h4>Participants:</h4>
+            <ul id="participants">
+                <!-- Participant names will be added dynamically -->
+            </ul>
+        </div>
+        <div id="matches-section">
+            <h4>Matches:</h4>
+            <ul id="matches">
+                <!-- Matches will be generated and displayed dynamically -->
+            </ul>
+        </div>
+    </div>
+    
+    
     <script src="{% static 'pong/js/loby.js' %}"></script>
-    <script src="{% static 'pong/js/spaceShip.js' %}"></script>
+    {% comment %} <script src="{% static 'pong/js/spaceShip.js' %}"></script> {% endcomment %}
     <script src="{% static 'pong/js/aimode.js' %}"></script>
     <script src="{% static 'pong/js/online.js' %}"></script>
     <script src="{% static 'pong/js/local_1vs1.js' %}"></script>
     <script src="{% static 'pong/js/online1vs1.js' %}"></script>
-
+    <script src="{% static 'pong/js/tournament_m.js' %}"></script>
+    
     <footer>
         PongWars game by arahmoun, 2024 c. &#169;
     </footer>

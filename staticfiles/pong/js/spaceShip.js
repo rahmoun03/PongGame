@@ -7,8 +7,8 @@ window.spaceShip = function () {
 
     const scene = new THREE.Scene();
 
-    let width = window.innerWidth * 0.8;
-    let height = window.innerHeight * 0.8;
+    let width = canvas.innerWidth;
+    let height = canvas.innerHeight;
 
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 2000);
 
@@ -76,8 +76,8 @@ window.spaceShip = function () {
     }
 
     function onWindowResize() {
-        width = window.innerWidth * 0.8;
-        height = window.innerHeight * 0.8;
+        width = canvas.innerWidth;
+        height = canvas.innerHeight;
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);

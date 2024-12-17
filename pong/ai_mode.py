@@ -34,6 +34,7 @@ class AIConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.is_active = True
+        self.target_x = 0
         self.width = 800
         self.height = 400
         self.speed = 1
@@ -63,7 +64,7 @@ class AIConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
 
         data = json.loads(text_data)
-        # print("data {", data, "}")
+        print("data {", data, "}")
         if data["type"] == "countdown":
             self.width = data["width"]
             self.height = data["height"]
@@ -106,6 +107,7 @@ class AIConsumer(AsyncWebsocketConsumer):
         while self.is_active:
             #update_paddle paddle
             self.move_paddel(self.player1)
+            self.simulate_keypress(self.player2)
             self.move_paddel(self.player2)
             
             ##
@@ -154,15 +156,14 @@ class AIConsumer(AsyncWebsocketConsumer):
             player["x"] = (TABLE_WIDTH / 2) - (self.paddle["width"]  / 2) - 1
 
     async def ai_logic(self):
-        x = 1 
+        # x = 1 
         while self.is_active:
-            print(x)
-            x += 1
+            # print(x)
+            # x += 1
             if decide_ai_state(self.ball) == AIState.CHASE:
-                target_x = self.predict_ball_position()
-                target_x = self.add_imperfection(target_x)
-                self.simulate_keypress(self.player2, target_x)
-                print(f"GO TO : {target_x}")
+                self.target_x = self.predict_ball_position()
+                self.target_x = self.add_imperfection(self.target_x)
+                # print(f"GO TO : {target_x} from : ", self.player2["x"])
             elif decide_ai_state(self.ball) == AIState.IDLE:
                 self.player2["direction"] = 0
             await asyncio.sleep(1)  # Refresh view every second
@@ -171,15 +172,15 @@ class AIConsumer(AsyncWebsocketConsumer):
         error_margin = random.uniform(-1, 1)  # Add randomness to prediction
         return target_x + error_margin
 
-    def simulate_keypress(self, player, target_x):
-        if player["x"] < target_x :
+    def simulate_keypress(self, player):
+        if player["x"] < self.target_x :
             player["direction"] = 1  # Simulate "right arrow" keypress
-        elif player["x"] > target_x:
+        elif player["x"] > self.target_x:
             player["direction"] = -1  # Simulate "left arrow" keypress
         else:
             player["direction"] = 0  # No keypress
 
-        if player["x"] - (PADDLE_WIDTH / 2) < target_x < player["x"] + (PADDLE_WIDTH / 2):
+        if player["x"] - (PADDLE_WIDTH / 2) < self.target_x < player["x"] + (PADDLE_WIDTH / 2):
             player["direction"] = 0
 
     def predict_ball_position(self):
@@ -188,17 +189,28 @@ class AIConsumer(AsyncWebsocketConsumer):
         dx = self.ball["dx"]
         dz = self.ball["dz"]
 
-        # while abs(future_z) < TABLE_HIEGHT / 2:
-        future_x = future_x + (dx / abs(dz)) * abs(future_z - self.player2["z"])
-            # if abs(future_x) + self.ball["radius"] >= (TABLE_WIDTH / 2) - 1:
-            #     time_to_wall = ((TABLE_WIDTH / 2 - 1) - abs(future_x)) / abs(dx)
-            #     future_z += dz * time_to_wall
-            #     print(f"HIT the Wall in : {future_z}")
-            #     dx *= -1
-            # if self.ball["z"] < self.player2["z"]:
-            #     break
+        while abs(future_z) < TABLE_HIEGHT / 2:
+            # Calculate time to the next wall collision
+            if dx > 0:
+                time_to_wall = (((TABLE_WIDTH / 2) - 1) - (future_x + self.ball["radius"])) / dx
+            else:
+                time_to_wall = ((-(TABLE_WIDTH / 2) + 1) - (future_x - self.ball["radius"])) / abs(dx)
+
+            # Predict z position during this time 
+            potential_future_z = future_z + dz * time_to_wall
+
+            # Check if the ball stays within the bounds of the table height
+            if abs(potential_future_z) >= TABLE_HIEGHT / 2:
+                # The ball reaches the end of the table (goal area)
+                break
+  
+            # Update future_x and future_z after wall bounce
+            future_x += dx * time_to_wall
+            future_z = potential_future_z
+            dx *= -1  # Reverse the direction of dx upon wall collision
 
         return future_x
+
     
     async def check_goals(self):
         # print(self.role , ": was here")

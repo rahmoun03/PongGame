@@ -43,9 +43,13 @@ class GameStart extends HTMLElement {
     // Attach styles
     const style = document.createElement('style');
     style.textContent = `
+    :host{
+      hieght: 30%;
+      width : 20%;
+    }
     .game-start-container {
       left: 0px;
-      width: 80vw;
+      width: 100%;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -53,17 +57,16 @@ class GameStart extends HTMLElement {
 
     button {
       padding: 10px 10px;
-      width: 30%;
-      margin-bottom: 5px;
-      font-family: "Press Start 2P", system-ui;
-      font-weight: 400;
-      font-style: normal;
-      font-size: 12px;
+      width: 90%;
+      margin-bottom: 10px;
+      font-family: "Pong War";
+      letter-spacing: 2px;
       color: white;
-      background-color: rgba(56, 75, 112, 0.4);
-      border: 1px solid rgba(56, 75, 112, 0);
+      background-color: var(--red);
+      border: 1px solid white;
+      border-radius: 5px;
       cursor: pointer;
-      transition: 0.4s ease;
+      transition: 0.5s ease;
     }
     
     button.hidden {
@@ -71,21 +74,14 @@ class GameStart extends HTMLElement {
     }
 
     button:nth-child(6) {
-      background-color: rgba(56, 75, 112, 1);
+      background-color: var(--blue);
     }
 
-    button:nth-child(1) {
-      color: #10ff10;
-    }
-      
     button:hover {
-      background-color: rgba(152, 252, 217, 0.0);
-      background-image: linear-gradient(to right, rgba(255, 255, 255, 1) , rgba(0,0,0, 0.0));
-      color: #ffffff;
-      width: 40%;
+      background-color: gray;
     }
     `;
-      
+
       // Attach everything to the shadow DOM
       shadow.appendChild(style);
       shadow.appendChild(container);
@@ -114,7 +110,7 @@ class GameStart extends HTMLElement {
       case 'AI Mode':
         this.remove();
         document.getElementById('game-title').style.display = 'none';
-        document.getElementById('spaceship').style.display = 'none';
+        // document.getElementById('spaceship').style.display = 'none';
         window.ai_mode();
         break;
       case 'Multiplayer':
@@ -131,12 +127,15 @@ class GameStart extends HTMLElement {
       case 'Local':
         this.section = 2;
         this.remove();
-        document.getElementById('spaceship').style.display = 'none';
+        // document.getElementById('spaceship').style.display = 'none';
         document.getElementById('CC').style.display = 'none';
         window.local_1vs1();
         break;
       case 'Tournament':
         console.log('Tournament');
+        this.section = 1;
+        document.getElementById('tournament-section').style.display = "flex";
+        window.manage();
         break;
       case 'Back':
         if(this.section == 1)

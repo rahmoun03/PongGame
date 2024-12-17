@@ -19,12 +19,13 @@ window.online_1vs1 = function ()
     
     let tableWidth, tableHeight;
     const scene = new THREE.Scene();
-    
-    let width = window.innerWidth * 0.8;
-    let height = window.innerHeight * 0.8;
 
-    canvas.width = width;
-    canvas.height = height;
+
+    canvas.width = document.documentElement.clientWidth;
+    canvas.height = document.documentElement.clientHeight;
+    
+    let width = canvas.width ;
+    let height = canvas.height ;
     
     const axesHelper = new THREE.AxesHelper(width / 2);
     scene.add(axesHelper);
@@ -80,7 +81,7 @@ window.online_1vs1 = function ()
             canvas.style.display = "block"
             initRenderer();
             document.getElementById('CC').style.display = 'none';
-            document.getElementById('spaceship').style.display = 'none';
+            // document.getElementById('spaceship').style.display = 'none';
             waitingPage.style.display = "none";
             table_config = data.table;
             paddle = data.paddle;
@@ -151,8 +152,12 @@ window.online_1vs1 = function ()
 
 
     window.addEventListener("resize", () => {
-        width = window.innerWidth * 0.8;
-        height = window.innerHeight * 0.8;
+
+        canvas.width = document.documentElement.clientWidth;
+        canvas.height = document.documentElement.clientHeight;
+
+        width = canvas.width;
+        height = canvas.height;
         camera.aspect = width / height;
         renderer.setSize(width , height);
         camera.updateProjectionMatrix();
