@@ -40,9 +40,9 @@ window.manage = function () {
         tournaments.push({ name: tournamentName, creator: alias });
 
         matchmakingSection.style.display = 'block';
-        addParticipant(alias);
+        window.matchnaking(alias, tournamentName);
 
-        alert(`Tournament "${tournamentName}" created by ${alias}!`);
+        // alert(`Tournament "${tournamentName}" created by ${alias}!`);
 
         // Reset fields
         document.getElementById('create-alias').value = '';
@@ -75,55 +75,6 @@ window.manage = function () {
     });
 
 
-    const participants = []; // List of participants
-    const matches = []; // List of matches
-
-    const participantsList = document.getElementById('participants');
-    const matchesList = document.getElementById('matches');
-    const matchmakingSection = document.getElementById('matchmaking-section');
-
-    // Simulate adding a participant
-    function addParticipant(alias) {
-        participants.push(alias);
-        updateParticipantList();
-        generateMatches();
-    }
-
-    // Update the participant list UI
-    function updateParticipantList() {
-        participantsList.innerHTML = '';
-        participants.forEach(participant => {
-            const listItem = document.createElement('li');
-            listItem.textContent = participant;
-            participantsList.appendChild(listItem);
-        });
-    }
-
-    // Generate matches dynamically
-    function generateMatches() {
-        matches.length = 0; // Clear previous matches
-
-        // Pair participants
-        const shuffledParticipants = [...participants].sort(() => Math.random() - 0.5); // Shuffle
-        for (let i = 0; i < shuffledParticipants.length; i += 2) {
-            if (shuffledParticipants[i + 1]) {
-                matches.push(`${shuffledParticipants[i]} vs ${shuffledParticipants[i + 1]}`);
-            } else {
-                matches.push(`${shuffledParticipants[i]} gets a bye`);
-            }
-        }
-
-        updateMatchesList();
-    }
-    // Update the matches UI
-    function updateMatchesList() {
-        matchesList.innerHTML = '';
-        matches.forEach(match => {
-            const matchItem = document.createElement('li');
-            matchItem.textContent = match;
-            matchesList.appendChild(matchItem);
-        });
-    }
 
     // Update Tournament Dropdown
     function updateTournamentList() {

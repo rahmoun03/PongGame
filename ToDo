@@ -18,3 +18,94 @@ TODO AI Improvement:
         Predicting the ball's trajectory based on its current velocity and angle.
         Adapting the AI's difficulty level based on the player's skill level.
         Implementing learning algorithms to improve the AI's performance over time.
+
+
+
+                {% comment %} create game over section {% endcomment %}
+        <div id="gameOver" style="display: none;">
+            <h1>Game Over</h1>
+            <p id="winner"></p>
+            <p id="score"></p>
+            <button action="/" id="playAgain">Play Again</button>
+        </div>
+        
+        {% comment %} Waiting for opponent section {% endcomment %}
+        <div id="waiting" style="display: none;">
+            <div class="left_user">
+                <div class="user_info">
+                    <p>username</p>
+                    <div class="user_image"></div>
+                </div>
+        </div>
+        <div class="midel_info">
+            <p>Waiting for opponent...</p>
+            <div class="loader"></div>
+        </div>
+        <div class="right_user">
+            <div class="user_info">
+                <p>username</p>
+                <div class="user_image"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="countdown" style="display: none;">
+    </div>
+    
+    <!-- Tournament -->
+    <div id="tournament-section" style="display: none;">
+        <div class="tournament-headers">
+            <h2>Tournament</h2>
+            <div class="tournament-feilds">
+                <h3>create</h3>
+                <h3>join</h3>
+            </div>
+        </div>
+        
+        <!-- Create Tournament Section -->
+        <div id="create-tournament">
+            <h3>Create Tournament</h3>
+            <form id="create-tournament-form">
+                <label for="alias">Alias Name:</label>
+                <input type="text" id="create-alias" placeholder="Enter your alias" required>
+                <br>
+                <label for="tournament-name">Tournament Name:</label>
+                <input type="text" id="tournament-name" placeholder="Enter tournament name" required>
+                <br>
+                <button type="button" id="create-button">Create Tournament</button>
+            </form>
+        </div>
+        
+        
+        <!-- Join Tournament Section -->
+        <div id="join-tournament" style="display: none;">
+            <h3>Join Tournament</h3>
+            <label for="tournament-list">Available Tournaments:</label>
+            <ul id="tournament-list">
+                <!-- Tournament options will be dynamically added -->
+            </ul>
+            <br>
+            <label for="join-alias">Alias Name:</label>
+            <input type="text" id="join-alias" placeholder="Enter your alias" required>
+            <br>
+            <button type="button" id="join-button">Join Tournament</button>
+        </div>
+    </div>
+    
+    <div id="matchmaking-section" style="display: none;">
+        <h3>Matchmaking</h3>
+        <div id="participant-list">
+            <h4>Participants:</h4>
+            <ul id="participants">
+                <!-- Participant names will be added dynamically -->
+            </ul>
+        </div>
+        <div id="matches-section">
+            <h4>Matches:</h4>
+            <ul id="matches">
+                <!-- Matches will be generated and displayed dynamically -->
+            </ul>
+        </div>
+    </div>
+    
+    

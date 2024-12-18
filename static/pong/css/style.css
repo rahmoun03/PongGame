@@ -30,6 +30,15 @@ body, html {
     align-items: center;
 }
 
+#content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
 canvas {
     width: 100%;
     height: 100%;
@@ -54,30 +63,6 @@ canvas {
     /* border: 2px solid rgba(11, 11, 11, 0.5); */
 }
 
-/* #spaceship {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    justify-content: center;
-    align-items: center;
-    z-index: -1;
-} */
-
-#game-title {
-    position: absolute;
-    top: 50px;
-    display: flex;
-    font-family: "Pong War", "Freeware";
-    font-weight: bold;
-    font-size: 120px;
-    margin-bottom: 20px;
-    text-align: center;
-    color: var(--red);
-    text-shadow: 2px 0 white, -2px 0 white, 0 2px white, 0 -2px white,
-             1px 1px white, -1px -1px white, 1px -1px white, -1px 1px white;
-    /* color: #F5ED17; */
-    /* text-shadow: 2px 2px 2px rgba(255, 255, 255, 1); */
-}
 
 footer {
     font-family: "Press Start 2P";
@@ -86,18 +71,6 @@ footer {
     position: fixed;
     bottom: 10px;
     left: 10px;
-}
-
-#gameOver {
-    place-items: center;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    height: 100%; 
-    background: rgb(0, 0, 0);
-    color: white;
-    text-shadow: 2px 2px 5px rgba(255, 255, 255, 1);
 }
 
 
@@ -109,73 +82,12 @@ footer {
         transform: translateY(-20px);
     }
 }
-#waiting {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    flex-direction: row;
-    justify-content: space-around;
-    /* background: rgb(0, 0, 0); */
-    /* border: 2px solid rgba(11, 11, 11, 0.5); */
-    transition: 0.5s ease;
-    z-index: 10;
-}
-
-.left_user{
-    width: 20%;
-    background-image: linear-gradient(to bottom, rgba(255, 255, 255, 1) , rgba(0,0,0, 0.0));
-    height: 80%; 
-    place-items: center;
-    place-content: center;
-    gap: 10px;
-    border-bottom: 50px solid #555;
-	border-left: 25px solid transparent;
-	border-right: 25px solid transparent;
-}
-
-.user_info{
-    color: white;
-    text-shadow: #FC0 1px 0 10px;
-    font-size: 24px;
-}
-
-.midel_info{
-    width: 20%;
-    height: 100%; 
-    place-items: center;
-    place-content: center;
-    flex-direction: column;
-    color: white;
-    text-shadow: #FC0 1px 0 10px;
-    font-size: 16px;
-}
-.user_image {
-    border: 2px solid #000000;
-    background-image: linear-gradient(to top, rgba(255, 255, 255, 1) , rgba(0,0,0, 0.6));
-    border-radius: 50%;
-    width: 100px;
-    height: 100px;
-}
-
-.right_user{
-    width: 20%;
-    background-image: linear-gradient(to bottom, rgba(255, 255, 255, 1) , rgba(0,0,0, 0.0));
-    height: 80%; 
-    place-items: center;
-    place-content: center;
-    gap: 10px;
-}
 
 
-
-.loader {
-    border: 6px solid #a09d9d;
-    border-top: 6px solid white;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    animation: spin 1s linear infinite;
-}
+/* Hidden by default */
+.hidden {
+    display: none;
+    }
 
 #countdown {
     color: var(--red);
@@ -192,21 +104,6 @@ footer {
     background-color: rgba(255, 0, 0, 0);
 }
 
-
-#tournament-section {
-    flex-direction: column;
-    color: white;
-    font-family: "Pong War";
-    letter-spacing: 2px;
-    position: absolute;
-    width: 50%;
-    margin: 20px auto;
-    padding: 20px;
-    /* border: 1px solid #ccc; */
-    border-radius: 5px;
-    background: var(--blue);
-    transition:  0.5s ease;
-}
 
 .tournament-headers {
     display: flex;
@@ -322,6 +219,7 @@ footer {
     text-align: center;
     font-weight: bold;
 }
+
 
 @keyframes spin {
     0% { transform: rotate(0deg); }

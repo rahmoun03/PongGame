@@ -2,7 +2,6 @@ window.ai_mode = function ()
 {
     const countdownElement = document.getElementById('countdown');
     const canvas = document.getElementById("pongCanvas");
-    // const Parent = document.getElementById("CC");
     const waitingPage = document.getElementById("waiting");
     const ai_URL = 'ws://'+window.location.host+'/ws/ai/';
     let wsOpen = false;

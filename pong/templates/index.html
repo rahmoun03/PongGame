@@ -1,3 +1,5 @@
+
+
 {% extends "master.html" %}
 {% load static %}
 
@@ -52,110 +54,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
     
-    <div class="canvas_container" id="CC">
-        <div id="game-title">Pong Wars</div>
-        {% comment %} <canvas id="spaceship"></canvas> {% endcomment %}
-        <canvas id="pongCanvas" style="display: none;"></canvas>
-        <game-start></game-start>
-    </div>
+            <game-page></game-page>
 
-    {% comment %} create game over section {% endcomment %}
-    <div id="gameOver" style="display: none;">
-        <h1>Game Over</h1>
-        <p id="winner"></p>
-        <p id="score"></p>
-        <button action="/" id="playAgain">Play Again</button>
-    </div>
+            <footer>
+                PongWars game by arahmoun, 2024 c. &#169;
+            </footer>
 
-    {% comment %} Waiting for opponent section {% endcomment %}
-    <div id="waiting" style="display: none;">
-        <div class="left_user">
-            <div class="user_info">
-                <p>username</p>
-                <div class="user_image"></div>
-            </div>
-        </div>
-        <div class="midel_info">
-            <p>Waiting for opponent...</p>
-            <div class="loader"></div>
-        </div>
-        <div class="right_user">
-            <div class="user_info">
-                <p>username</p>
-                <div class="user_image"></div>
-            </div>
-        </div>
-    </div>
 
-    <div id="countdown" style="display: none;">
-    </div>
-    
-    <!-- Tournament -->
-    <div id="tournament-section" style="display: none;">
-        <div class="tournament-headers">
-            <h2>Tournament</h2>
-            <div class="tournament-feilds">
-                <h3>create</h3>
-                <h3>join</h3>
-            </div>
-        </div>
-    
-        <!-- Create Tournament Section -->
-        <div id="create-tournament">
-            <h3>Create Tournament</h3>
-            <form id="create-tournament-form">
-                <label for="alias">Alias Name:</label>
-                <input type="text" id="create-alias" placeholder="Enter your alias" required>
-                <br>
-                <label for="tournament-name">Tournament Name:</label>
-                <input type="text" id="tournament-name" placeholder="Enter tournament name" required>
-                <br>
-                <button type="button" id="create-button">Create Tournament</button>
-            </form>
-        </div>
-    
-    
-        <!-- Join Tournament Section -->
-        <div id="join-tournament" style="display: none;">
-            <h3>Join Tournament</h3>
-            <label for="tournament-list">Available Tournaments:</label>
-            <ul id="tournament-list">
-                <!-- Tournament options will be dynamically added -->
-            </ul>
-            <br>
-            <label for="join-alias">Alias Name:</label>
-            <input type="text" id="join-alias" placeholder="Enter your alias" required>
-            <br>
-            <button type="button" id="join-button">Join Tournament</button>
-        </div>
-    </div>
-
-    <div id="matchmaking-section" style="display: none;">
-        <h3>Matchmaking</h3>
-        <div id="participant-list">
-            <h4>Participants:</h4>
-            <ul id="participants">
-                <!-- Participant names will be added dynamically -->
-            </ul>
-        </div>
-        <div id="matches-section">
-            <h4>Matches:</h4>
-            <ul id="matches">
-                <!-- Matches will be generated and displayed dynamically -->
-            </ul>
-        </div>
-    </div>
-    
-    
-    <script src="{% static 'pong/js/loby.js' %}"></script>
-    {% comment %} <script src="{% static 'pong/js/spaceShip.js' %}"></script> {% endcomment %}
+    <script type="module" src="{% static 'pong/js/gamePage.js' %}"></script>
     <script src="{% static 'pong/js/aimode.js' %}"></script>
     <script src="{% static 'pong/js/online.js' %}"></script>
     <script src="{% static 'pong/js/local_1vs1.js' %}"></script>
     <script src="{% static 'pong/js/online1vs1.js' %}"></script>
     <script src="{% static 'pong/js/tournament_m.js' %}"></script>
-    
-    <footer>
-        PongWars game by arahmoun, 2024 c. &#169;
-    </footer>
+            
 {% endblock %}
