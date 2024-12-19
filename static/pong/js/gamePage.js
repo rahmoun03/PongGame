@@ -37,7 +37,7 @@ class GamePage extends HTMLElement {
         shadow.appendChild(style);
         shadow.appendChild(main);
         render(menu(), document.body);
-        render(tournamentPage(), document.body);
+        // render(tournamentPage(), document.body);
     }
 }
 

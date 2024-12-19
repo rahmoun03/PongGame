@@ -76,6 +76,7 @@ window.manage = function () {
 
 
 
+    
     // Update Tournament Dropdown
     function updateTournamentList() {
         // const list = document.getElementById('tournament-list');
