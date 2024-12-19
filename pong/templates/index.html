@@ -9,12 +9,10 @@
 
 {% block content %}
     <!-- Three.js -->
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 
     <!-- FontLoader -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/loaders/FontLoader.js"></script>
-    
     
     <!-- TextGeometry -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/geometries/TextGeometry.js"></script>
@@ -30,18 +28,7 @@
     
     <!-- FBXLoader -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script> -->
-    
-    <!-- Postprocessing dependencies -->
-    {% comment %} <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
 
-    <!-- Shaders -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-     {% endcomment %}
     <!-- RGBELoader -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
     
@@ -62,10 +49,6 @@
 
 
     <script type="module" src="{% static 'pong/js/gamePage.js' %}"></script>
-    <script src="{% static 'pong/js/aimode.js' %}"></script>
-    <script src="{% static 'pong/js/online.js' %}"></script>
-    <script src="{% static 'pong/js/local_1vs1.js' %}"></script>
-    <script src="{% static 'pong/js/online1vs1.js' %}"></script>
     <script src="{% static 'pong/js/tournament_m.js' %}"></script>
             
 {% endblock %}

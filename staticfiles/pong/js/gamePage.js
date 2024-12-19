@@ -2,7 +2,7 @@ import { render } from './render.js';
 import { menu } from './loby.js';
 import { waitingPage } from './waiting.js';
 import { GameOver } from './gameOver.js'
-import { tournament } from './tournament.js'
+import { tournamentPage } from './tournament.js'
 
 class GamePage extends HTMLElement {
 
@@ -37,7 +37,7 @@ class GamePage extends HTMLElement {
         shadow.appendChild(style);
         shadow.appendChild(main);
         render(menu(), document.body);
-        render(tournament(), document.body);
+        render(tournamentPage(), document.body);
     }
 }
 

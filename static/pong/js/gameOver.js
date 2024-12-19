@@ -1,3 +1,6 @@
+import { render } from "./render.js";
+import { menu } from "./loby.js";
+
 let context = {
     player1 : 5,
     player2 : 5
@@ -20,10 +23,13 @@ style.textContent = `
 
     }
     .game-over-title {
-        font-family: "Pong War"; 
-        font-size: 124px;
+        font-family: "Pong War", "Freeware";
+        font-weight: bold;
+        font-size: 120px;
+        margin-bottom: 20px;
         color: var(--red);
-        text-shadow: none;
+        text-shadow: 2px 0 white, -2px 0 white, 0 2px white, 0 -2px white,
+                1px 1px white, -1px -1px white, 1px -1px white, -1px 1px white;
     }
     button {
         font-family: "Pong War";
@@ -72,7 +78,7 @@ export function GameOver(winnerContent = "WIN", scoreContent = context) {
     gameOver.appendChild(gameOverImage);
 
     playAgainButton.onclick = () => {
-        console.log("playe again");
+        render(menu(), document.body);
     };
 
     homeButton.onclick = () => {

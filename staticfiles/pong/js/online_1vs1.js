@@ -1,5 +1,7 @@
 import { render  } from "./render.js";
 import { GameOver } from "./gameOver.js";
+import { waitingPage } from "./waiting.js";
+import { menu } from "./loby.js";
 
 const style = document.createElement('style');
 style.textContent = `
@@ -51,10 +53,12 @@ function createcountdown() {
     return countdown;
 }
 
-export function local_1vs1()
+export function online_1vs1()
 {
     const countdownElement = createcountdown();
     const canvas = gameCanvas();
+    const matchMaking = waitingPage();
+    const cancel = matchMaking.querySelector('button');
 
     const pongCanvas = document.createElement('div');
     pongCanvas.classList.add('pongCanvas');
@@ -63,11 +67,12 @@ export function local_1vs1()
     pongCanvas.appendChild(canvas);
     pongCanvas.appendChild(countdownElement);
 
-    const local_URL = 'ws://'+window.location.host+'/ws/local_1vs1/';
+
+    const online_URL = 'ws://'+window.location.host+'/ws/online_1vs1/';
     let wsOpen = false;
-    const selectedMode = "local_1vs1";
-    let ball_config, ball, player1_config, player2_config, plane, table_config, paddle, score, animationId, role, composer;
-    let player2Direction = 0, player1Direction = 0;
+    const selectedMode = "online_1vs1";
+    let ball_config, ball, glowMesh, player1_config, player2_config, plane, table_config, paddle, score, animationId, role, composer;
+    let playerDirection = 0;
     let player1ScoreMesh, player2ScoreMesh;
     let player1 , player2;
     let renderer, controls;
@@ -79,32 +84,26 @@ export function local_1vs1()
     
     let tableWidth, tableHeight;
     const scene = new THREE.Scene();
-
+    
     let width = canvas.width ;
     let height = canvas.height ;
-
-    console.log("sizes : ", width, height);
     
     const axesHelper = new THREE.AxesHelper(width / 2);
     scene.add(axesHelper);
     axesHelper.visible = false;
     
     let stats = new Stats();
-    const camera1 = new THREE.PerspectiveCamera(75, (width / 2) / height, 0.1, 2000);
-    const camera2 = new THREE.PerspectiveCamera(75, (width / 2) / height, 0.1, 2000);
-    
-    camera1.position.set(0, 30, 25);
-    camera2.position.set(0, 30, -25);
-    camera2.lookAt(0, 0, 0);
-    scene.add(camera1, camera2);
+    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 2000);
+    camera.position.set(0, 30, 35);
+    scene.add(camera);
     
     
-    const grid = new THREE.GridHelper( 1000, 1000, 0xaaaaaa, 0xaaaaaa );
+    const grid = new THREE.GridHelper( 500, 500, 0xaaaaaa, 0xaaaaaa );
     grid.material.opacity = 1;
     grid.material.transparent = true;
     grid.position.y = -1;
     scene.add( grid );
-    grid.visible = false;
+    // grid.visible = false;
     function initRenderer(){
         
         renderer = new THREE.WebGLRenderer( {canvas, antialias: true} );
@@ -114,7 +113,7 @@ export function local_1vs1()
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
         document.body.appendChild( stats.dom );
-        controls = new THREE.OrbitControls( camera1, renderer.domElement );
+        controls = new THREE.OrbitControls( camera, renderer.domElement );
     }
     
     
@@ -125,16 +124,17 @@ export function local_1vs1()
     directionalLight.visible = false;
     
     
-    const socket = new WebSocket(local_URL);
+    const socket = new WebSocket(online_URL);
     // Handle WebSocket events
     socket.onopen = () => {
         wsOpen = true;
         console.log("Connected to the WebSocket!");
         socket.send(JSON.stringify({
-			type: "countdown",
+			type: "join_room",
 			width: width,
 			height: height
 		}));
+        render(matchMaking, document.body);
     };
     socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
@@ -148,7 +148,8 @@ export function local_1vs1()
             player2_config = data.player2;
             ball_config = data.ball;
             score = data.score;
-
+            role = data.role;
+            updateCameraPosition(role);
             table();
             ballCreation();
             playerCreation();
@@ -177,8 +178,7 @@ export function local_1vs1()
             ball.position.x = data.ball.x;
             ball.position.z = data.ball.z;
             score = data.score;
-            shakeCamera(camera1);
-            shakeCamera(camera2);
+            shakeCamera();
             updateScore();
         }
         if (data.type === "game_over") {
@@ -197,33 +197,34 @@ export function local_1vs1()
 
     document.addEventListener("keydown", movePaddle);
     document.addEventListener("keyup", stopPaddle);
-
     function movePaddle(e)
     {
-        if(e.key === 'ArrowLeft') player2Direction = -1;
-        if(e.key === 'ArrowRight') player2Direction = 1;
-        if(e.key === 'a') player1Direction = -1;
-        if(e.key === 'd') player1Direction = 1;
+        console.log("move paddle", e.key);
+        if(e.key === 'ArrowLeft') playerDirection = -1;
+        if(e.key === 'ArrowRight') playerDirection = 1;
     }
-
     function stopPaddle(e)
     {
         if (e.key === "ArrowLeft" || e.key === "ArrowRight")
-            player2Direction = 0;
-        if (e.key === "a" || e.key === "d")
-            player1Direction = 0;
+            playerDirection = 0;
     }
+
+    cancel.addEventListener('click', () => {
+        socket.close();
+        render(menu(), document.body);
+    });
+
+
     window.addEventListener("resize", () => {
+
         canvas.width = document.documentElement.clientWidth;
         canvas.height = document.documentElement.clientHeight;
 
         width = canvas.width;
         height = canvas.height;
-        camera1.aspect = (width / 2) / height;
-        camera2.aspect = (width / 2) / height;
-        camera2.updateProjectionMatrix();
-        camera1.updateProjectionMatrix();
+        camera.aspect = width / height;
         renderer.setSize(width , height);
+        camera.updateProjectionMatrix();
     });
 
     function table() {
@@ -424,13 +425,17 @@ export function local_1vs1()
         createScore();
     }
 
+    function updateCameraPosition(role) {
+        if (role === "player1")
+            camera.position.set(0, 30, 35);
+        if (role === "player2")
+            camera.position.set(0, 30, -35);
+    }
+
     function guiControl(){
-        gui.add(camera1.position, "x",);
-        gui.add(camera1.position, "y");  
-        gui.add(camera1.position, "z");
-        gui.add(camera2.position, "x",).name("camera 2 x");
-        gui.add(camera2.position, "y").name("camera 2 y");  
-        gui.add(camera2.position, "z").name("camera 2 z");
+        gui.add(camera.position, "x",);
+        gui.add(camera.position, "y");  
+        gui.add(camera.position, "z");
         gui.add(directionalLight, "visible").name("directional Light");
         gui.add(grid, "visible").name("grid");
         gui.add(axesHelper, "visible").name("helper");
@@ -442,61 +447,41 @@ export function local_1vs1()
         animationId = requestAnimationFrame(animate);
         stats.update();
         controls.update();
-
-        drawing();
+        renderer.render( scene, camera );
         if (wsOpen)
             sendPaddlePosition();
 
     }
 
     function sendPaddlePosition() {
-
+        console.log("sending  data ...");
         socket.send(JSON.stringify({
             type: "update_paddle",
-            player1_Direction : player1Direction,
-            player2_Direction : player2Direction,
+            direction : playerDirection,
             mode: selectedMode,
         }));
     }
 
-    // function shakeCamera(camera) {
-    //     const originalPosition = camera.position.clone();
-    //     const shakeStrength = 0.3;
-    //     const shakeDuration = 200; // in milliseconds
+    function shakeCamera() {
+        const originalPosition = camera.position.clone();
+        const shakeStrength = 0.3;
+        const shakeDuration = 200; // in milliseconds
     
-    //     const startTime = Date.now();
-    //     function shake() {
-    //         const elapsed = Date.now() - startTime;
-    //         if (elapsed < shakeDuration) {
-    //             camera.position.x = originalPosition.x + ((Math.random() - 1) * 2) * shakeStrength;
-    //             camera.position.y = originalPosition.y + ((Math.random() - 1) * 2) * shakeStrength;
-    //             camera.position.z = originalPosition.z + ((Math.random() - 1) * 2) * shakeStrength;
-    //             requestAnimationFrame(shake);
-    //         } else {
-    //             camera.position.copy(originalPosition); // Reset camera1 position
-    //         }
-    //     }
-    //     shake();
-    // }
-
-    function shakeCamera(camera, intensity = 0.3, duration = 0.5) {
-        const originalPosition = camera.position.clone(); // Store the original position
-    
-        // Animate shaking
-        gsap.to(camera.position, {
-            x: `+=${intensity}`,
-            y: `+=${intensity}`,
-            z: `+=${intensity}`,
-            duration: duration / 4,
-            yoyo: true,
-            repeat: 5,
-            onComplete: () => {
-                // Reset camera position after shaking
-                camera.position.copy(originalPosition);
+        const startTime = Date.now();
+        function shake() {
+            const elapsed = Date.now() - startTime;
+            if (elapsed < shakeDuration) {
+                camera.position.x = originalPosition.x + ((Math.random() - 1) * 2) * shakeStrength;
+                camera.position.y = originalPosition.y + ((Math.random() - 1) * 2) * shakeStrength;
+                camera.position.z = originalPosition.z + ((Math.random() - 1) * 2) * shakeStrength;
+                requestAnimationFrame(shake);
+            } else {
+                camera.position.copy(originalPosition); // Reset camera position
             }
-        });
+        }
+        shake();
     }
-    
+
 
     function startCountdown(duration, onComplete) {
         countdownElement.style.display = 'flex'; // Hide the countdown element
@@ -508,8 +493,7 @@ export function local_1vs1()
     
         // Update the countdown every second
         const interval = setInterval(() => {
-            // renderer.render( scene, camera1 );
-            drawing();
+            renderer.render( scene, camera );
 
             countdownElement.style.fillStyle = `rgba(255, 255, 255, ${opacity})`; // Fading effect
             countdownElement.style.font = `${100 * scale}px "Pong War", "Freeware"`; // Dynamic scaling
@@ -532,18 +516,4 @@ export function local_1vs1()
         }, 60);
     }
 
-
-    function drawing(){
-        // Render for the first view (Player 1)  blue player in the left side 
-        renderer.setViewport(0, 0, width / 2, height);
-        renderer.setScissor(0, 0, width / 2, height);
-        renderer.setScissorTest(true);
-        renderer.render(scene, camera1);
-        
-        // Render for the first view (Player 2) red player in the right side 
-        renderer.setViewport(width / 2, 0, width / 2, height);
-        renderer.setScissor(width / 2, 0, width / 2, height);
-        renderer.setScissorTest(true);
-        renderer.render(scene, camera2);
-    }
 }

@@ -1,33 +1,12 @@
 import { waitingPage } from './waiting.js';
 import { render } from './render.js';
+import { ai_mode } from './aimode.js';
+import { local_1vs1 } from './local_1vs1.js';
+import { online_1vs1 } from './online_1vs1.js';
 
-
-let  section = 0;
 let  switchButton = new Audio('static/pong/sound/switch.mp3');
 let click = new Audio('static/pong/sound/menu-click-89198.mp3');
 
-// Create container div
-const container = document.createElement('div');
-const title = document.createElement('div');
-container.classList.add('game-buttons-container');
-title.classList.add('game-title');
-title.textContent = "Pong War";
-
-// Create buttons
-const aiButton = createButton('AI Mode');
-const multiplayerButton = createButton('Multiplayer'); 
-const onlineButton = createButton('Online', 'hidden');
-const localButton = createButton('Local', 'hidden');
-const tournamentButton = createButton('Tournament');
-const backButton = createButton('Back', 'hidden');
-
-// Append buttons to container
-container.appendChild(aiButton);
-container.appendChild(multiplayerButton);
-container.appendChild(onlineButton);
-container.appendChild(localButton);
-container.appendChild(tournamentButton);
-container.appendChild(backButton);
 
 
 // Attach styles
@@ -87,10 +66,40 @@ style.textContent = `
 
   button:hover {
     background-color: gray;
-  }`;
+}`;
 
 
-function createButton(text, additionalClass = '') {
+export function menu() {
+  let  section = 0;
+  const menu = document.createElement('div');
+  menu.classList.add('menu');
+
+  // Create container div
+  const container = document.createElement('div');
+  const title = document.createElement('div');
+  container.classList.add('game-buttons-container');
+  title.classList.add('game-title');
+  title.textContent = "Pong War";
+
+  // Create buttons
+  const aiButton = createButton('AI Mode');
+  const multiplayerButton = createButton('Multiplayer'); 
+  const onlineButton = createButton('Online', 'hidden');
+  const localButton = createButton('Local', 'hidden');
+  const tournamentButton = createButton('Tournament');
+  const backButton = createButton('Back', 'hidden');
+
+  // Append buttons to container
+  container.appendChild(aiButton);
+  container.appendChild(multiplayerButton);
+  container.appendChild(onlineButton);
+  container.appendChild(localButton);
+  container.appendChild(tournamentButton);
+  container.appendChild(backButton);
+
+
+  
+  function createButton(text, additionalClass = '') {
     const button = document.createElement('button');
     button.textContent = text;
     if (additionalClass) {
@@ -104,64 +113,57 @@ function createButton(text, additionalClass = '') {
       switchButton.play();
     });
     return button;
-}
-
-function handleButtonClick(buttonType) {
-  click.play();
-  switch (buttonType) {
-    case 'AI Mode':
-      // remove();
-      window.ai_mode();
-      break;
-    case 'Multiplayer':
-      toggleMultiplayerOptions();
-      section = 1;
-      break;
-    case 'Online':
-      section = 2;
-      render(waitingPage(), document.body);
-      window.online_1vs1();
-      break;
-    case 'Local':
-      section = 2;
-      // remove();
-      window.local_1vs1();
-      break;
-    case 'Tournament':
-      console.log('Tournament');
-      section = 1;
-      document.getElementById('tournament-section').style.display = "flex";
-      window.manage();
-      break;
-    case 'Back':
-      if(section == 1)
-        toggleMultiplayerOptions();
-      else if(section == 2)
-      {
-        toggleModes();
-        section = 1;
-      }
-      break;
   }
-  console.log(section);
-}
 
-function toggleMultiplayerOptions() {
-  container.querySelectorAll('button').forEach((button) => {
-    button.classList.toggle('hidden'); // Toggle multiplayer options
-  });
-}
+  function handleButtonClick(buttonType) {
+    click.play();
+    switch (buttonType) {
+      case 'AI Mode':
+        ai_mode();
+        break;
+      case 'Multiplayer':
+        toggleMultiplayerOptions();
+        section = 1;
+        break;
+      case 'Online':
+        section = 2;
+        online_1vs1();
+        break;
+      case 'Local':
+        section = 2;
+        local_1vs1();
+        break;
+      case 'Tournament':
+        console.log('Tournament');
+        section = 1;
+        document.getElementById('tournament-section').style.display = "flex";
+        window.manage();
+        break;
+      case 'Back':
+        if(section == 1)
+          toggleMultiplayerOptions();
+        else if(section == 2)
+        {
+          toggleModes();
+          section = 1;
+        }
+        break;
+    }
+    console.log(section);
+  }
 
-function toggleModes() {
-  container.querySelectorAll('button').forEach((button, index) => {
-    if (index == 3 || index == 4 || index == 6) button.classList.toggle('hidden'); // Toggle visibility for modes
-  });
-}
+  function toggleMultiplayerOptions() {
+    container.querySelectorAll('button').forEach((button) => {
+      button.classList.toggle('hidden'); // Toggle multiplayer options
+    });
+  }
+  
+  function toggleModes() {
+    container.querySelectorAll('button').forEach((button, index) => {
+      if (index == 3 || index == 4 || index == 6) button.classList.toggle('hidden'); // Toggle visibility for modes
+    });
+  }
 
-
-export function menu() {
-  const menu = document.createElement('div');
-  menu.classList.add('menu');
   menu.appendChild(style);
   menu.appendChild(title);
   menu.appendChild(container);

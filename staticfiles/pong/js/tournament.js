@@ -21,12 +21,26 @@ const headers = document.createElement('div');
 const create_tournament = document.createElement('div');
 const join_tournament = document.createElement('div');
 
-
-
 tournament.classList.add('tournament');
+headers.classList.add('headers');
+create_tournament.classList.add('create_tournament');
+join_tournament.classList.add('join_tournament');
 
 
-export function tournament(){
+// headers 
+headers.textContent = "Tournament";
+const tournament_sectios = document.createElement('div');
+tournament_sectios.classList.add('tournament_sectios');
+
+const create_button = document.createElement('button');
+create_button.textContent = "Create";
+
+const join_button = document.createElement('button');
+join_button.textContent = "Join";
+
+
+
+export function tournamentPage(){
     tournament.appendChild(style);
     tournament.appendChild(headers);
     tournament.appendChild(create_tournament);

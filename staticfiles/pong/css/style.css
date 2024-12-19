@@ -44,33 +44,8 @@ canvas {
     height: 100%;
 }
 
-.canvas_container
-{
-    display: flex;
-    gap: 50px;
-    flex-direction: column;
-    place-content: center;
-    place-items: center;
-    width:  100%;
-    height: 100%; 
-}
 
-#pongCanvas {
-    width: 100%;
-    height: 100%;
-    justify-content: center;
-    align-items: center;
-    /* border: 2px solid rgba(11, 11, 11, 0.5); */
-}
 
-/* #spaceship {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    justify-content: center;
-    align-items: center;
-    z-index: -1;
-} */
 
 footer {
     font-family: "Press Start 2P";
@@ -79,18 +54,6 @@ footer {
     position: fixed;
     bottom: 10px;
     left: 10px;
-}
-
-#gameOver {
-    place-items: center;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    height: 100%; 
-    background: rgb(0, 0, 0);
-    color: white;
-    text-shadow: 2px 2px 5px rgba(255, 255, 255, 1);
 }
 
 
@@ -109,45 +72,6 @@ footer {
     display: none;
     }
 
-/* .loader {
-    border: 6px solid #a09d9d;
-    border-top: 6px solid white;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    animation: spin 1s linear infinite;
-} */
-
-#countdown {
-    color: var(--red);
-    text-shadow: 2px 0 white, -2px 0 white, 0 2px white, 0 -2px white,
-    1px 1px white, -1px -1px white, 1px -1px white, -1px 1px white;
-    /* text-shadow: 2px 2px 5px rgba(255, 255, 255, 1); */
-    position: absolute;
-    text-align: center;
-    place-content: center;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 0, 0, 0);
-}
-
-
-#tournament-section {
-    flex-direction: column;
-    color: white;
-    font-family: "Pong War";
-    letter-spacing: 2px;
-    position: absolute;
-    width: 50%;
-    margin: 20px auto;
-    padding: 20px;
-    /* border: 1px solid #ccc; */
-    border-radius: 5px;
-    background: var(--blue);
-    transition:  0.5s ease;
-}
 
 .tournament-headers {
     display: flex;

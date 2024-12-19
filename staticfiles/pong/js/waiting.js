@@ -1,8 +1,12 @@
+import { render } from "./render.js";
+import { menu } from "./loby.js";
+
 const waiting = document.createElement('div');
 const left_user = document.createElement('div');
 const right_user = document.createElement('div');
 const midel_info = document.createElement('div');
 const loader = document.createElement('div');
+const cancel = document.createElement('button');
 const style = document.createElement('style');
 
 waiting.classList = 'waiting';
@@ -13,6 +17,7 @@ loader.classList = 'loader';
 
 
 midel_info.textContent = 'Waiting for opponent...';
+cancel.textContent = 'Cancel';
 style.textContent = `
     .waiting {
         font-family: "Pong War" ,'Press Start 2P';
@@ -37,6 +42,7 @@ style.textContent = `
         display: flex;
         width: 20%;
         height: 100%; 
+        text-align: center;
         place-items: center;
         place-content: center;
         flex-direction: column;
@@ -69,6 +75,24 @@ style.textContent = `
         height: 30px;
         animation: spin 2s linear infinite;
     }
+    button {
+        position: absolute;
+        bottom: 10%;
+        font-family: "Pong War";
+        padding: 10px 10px;
+        width: 20%;
+        margin-bottom: 10px;
+        letter-spacing: 2px;
+        color: white;
+        background-color: var(--red);
+        border: 1px solid white;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: 0.5s ease;
+    }
+    button:hover {
+        background-color: gray;
+    }
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
@@ -91,7 +115,6 @@ function createUserCard(username = 'User Name') {
 }
 
 
-
 midel_info.appendChild(loader);
 left_user.appendChild(createUserCard('Player 1'));
 right_user.appendChild(createUserCard('Player 2'));
@@ -101,6 +124,7 @@ export function waitingPage() {
     waiting.appendChild(left_user);
     waiting.appendChild(midel_info);
     waiting.appendChild(right_user);
+    waiting .appendChild(cancel);
 
     return waiting;
 }

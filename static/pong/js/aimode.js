@@ -1,12 +1,75 @@
-window.ai_mode = function ()
+import { render  } from "./render.js";
+import { waitingPage } from "./waiting.js";
+import { GameOver } from "./gameOver.js";
+
+const style = document.createElement('style');
+style.textContent = `
+    canvas {
+        width: 100%;
+        height: 100%;
+    }
+    .countdown {
+        color: var(--red);
+        text-shadow: 2px 0 white, -2px 0 white, 0 2px white, 0 -2px white,
+            1px 1px white, -1px -1px white, 1px -1px white, -1px 1px white;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        text-align: center;
+        place-content: center;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 0, 0, 0);
+    }
+    .pongCanvas {
+        display: flex;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+    }
+`;
+
+function gameCanvas() {
+    const canvas = document.createElement('canvas');
+    canvas.style.display = 'flex';
+    canvas.width = document.documentElement.clientWidth;
+    canvas.height = document.documentElement.clientHeight;
+    
+    return canvas;
+}
+
+function createcountdown() {
+    const countdown = document.createElement('div');
+    countdown.classList.add('countdown');
+    countdown.style.display = 'none';
+
+    return countdown;
+}
+
+
+export function ai_mode()
 {
-    const countdownElement = document.getElementById('countdown');
-    const canvas = document.getElementById("pongCanvas");
-    const waitingPage = document.getElementById("waiting");
+
+    const countdownElement = createcountdown();
+
+    const pongCanvas = document.createElement('div');
+    const canvas = gameCanvas();
+
+    pongCanvas.classList.add('pongCanvas');
+    pongCanvas.appendChild(style);
+    pongCanvas.appendChild(canvas);
+    pongCanvas.appendChild(countdownElement);
+    
     const ai_URL = 'ws://'+window.location.host+'/ws/ai/';
     let wsOpen = false;
     const selectedMode = "AI MODE";
-    let ball_config, ball, player1_config, player2_config, paddle, score, animationId, role, composer;
+    let ball_config, ball, plane, paddle, score, animationId, table_config, player1_config, player2_config;
     let playerDirection = 0;
     let player1ScoreMesh, player2ScoreMesh;
     let player1 , player2;
@@ -19,14 +82,9 @@ window.ai_mode = function ()
     
     let tableWidth, tableHeight;
     const scene = new THREE.Scene();
-    
-    canvas.width = document.documentElement.clientWidth;
-    canvas.height = document.documentElement.clientHeight;
-    
+
     let width = canvas.width ;
     let height = canvas.height ;
-    // canvas.width = "100%";
-    // canvas.height = "100%";
 
     console.log("sizes : ", width, height);
     
@@ -44,8 +102,9 @@ window.ai_mode = function ()
     grid.material.opacity = 1;
     grid.material.transparent = true;
     grid.position.y = -1;
-    // scene.add( grid );
+    scene.add( grid );
     grid.visible = false;
+
     function initRenderer(){
         
         renderer = new THREE.WebGLRenderer( {canvas, antialias: true} );
@@ -57,8 +116,8 @@ window.ai_mode = function ()
         document.body.appendChild( stats.dom );
         controls = new THREE.OrbitControls( camera, renderer.domElement );
     }
-    
-    
+
+
     const directionalLight = new THREE.DirectionalLight(0xfdfbd3, 10, 800);
     directionalLight.position.set(0, 500, 50);
     directionalLight.castShadow = true;
@@ -81,8 +140,7 @@ window.ai_mode = function ()
         const data = JSON.parse(e.data);
         console.table('data', data)
         if (data.type === "start") {
-            canvas.style.display = "block";
-            document.getElementById('CC').style.display = 'none';
+            render(pongCanvas, document.body);
             initRenderer();
             table_config = data.table;
             paddle = data.paddle;
@@ -124,7 +182,7 @@ window.ai_mode = function ()
         }
         if (data.type === "game_over") {
             score = data.score;
-            endGame(data.winner);
+            render(GameOver(data.winner, score), document.body);
         }
     };
     socket.onclose = () => {
@@ -191,7 +249,7 @@ window.ai_mode = function ()
     function tableBound(tableWidth, tableHeight){
 
     //////////////////////////////////////////////////
-        tableCenter = new THREE.Mesh(
+        const tableCenter = new THREE.Mesh(
             new THREE.PlaneGeometry(tableWidth, 0.2),
             new THREE.MeshBasicMaterial({color: "white"})
         );
@@ -200,7 +258,7 @@ window.ai_mode = function ()
         tableCenter.position.set(0, plane.position.y + 0.01, 0);
         TableG.add(tableCenter);
     /////////////////////////////////////////////////
-        boundM = new THREE.Mesh(
+        const boundM = new THREE.Mesh(
             new THREE.PlaneGeometry(tableWidth, 0.1),
             new THREE.MeshBasicMaterial({color: "white"})
         );
@@ -209,7 +267,7 @@ window.ai_mode = function ()
         boundM.position.set(0, plane.position.y + 0.01, tableHeight / 2);
         TableG.add(boundM);
     ///////////////////////////////////////////////////////
-        boundY = new THREE.Mesh(
+        const boundY = new THREE.Mesh(
             new THREE.PlaneGeometry(tableWidth, 0.1),
             new THREE.MeshBasicMaterial({color: "white"})
         );
@@ -222,8 +280,7 @@ window.ai_mode = function ()
 
     function tableWalls(tableWidth, tableHeight) {
 
-    /////////////////////////////////////////////
-        WallL = new THREE.Mesh(
+        const WallL = new THREE.Mesh(
             new THREE.BoxGeometry(1, 1, tableHeight / 2),
             new THREE.MeshToonMaterial({
                 color: "cyan",
@@ -234,12 +291,12 @@ window.ai_mode = function ()
         WallL.position.set(-(tableWidth / 2) + 0.5, 0, tableHeight / 4);
         TableG.add(WallL);
         
-        rectLight1 = new THREE.RectAreaLight( "cyan", 2, tableHeight / 2, 3 );
+        const rectLight1 = new THREE.RectAreaLight( "cyan", 2, tableHeight / 2, 3 );
         rectLight1.position.set( WallL.position.x + 0.5, WallL.position.y , WallL.position.z);
         rectLight1.rotation.y = -Math.PI / 2;
         TableG.add( rectLight1 );
-    /////////////////////////////////////////////
-        WallL1 = new THREE.Mesh(
+        
+        const WallL1 = new THREE.Mesh(
             new THREE.BoxGeometry(1, 1, tableHeight / 2),
             new THREE.MeshToonMaterial({
                 color: 0x00ff00,
@@ -250,12 +307,12 @@ window.ai_mode = function ()
         WallL1.position.set(-(tableWidth / 2) + 0.5, 0, -(tableHeight / 4));
         TableG.add(WallL1);
 
-        rectLight2 = new THREE.RectAreaLight( 0x00ff00, 2, tableHeight / 2, 3 );
+        const rectLight2 = new THREE.RectAreaLight( 0x00ff00, 2, tableHeight / 2, 3 );
         rectLight2.position.set( WallL1.position.x + 0.5, WallL1.position.y, WallL1.position.z);
         rectLight2.rotation.y = -Math.PI / 2;
         TableG.add( rectLight2 );
-    ///////////////////////////////////////////////
-        WallR = new THREE.Mesh(
+        
+        const WallR = new THREE.Mesh(
             new THREE.BoxGeometry(1, 1, tableHeight / 2),
             new THREE.MeshToonMaterial({
                 color: 0x00ff00,
@@ -266,12 +323,12 @@ window.ai_mode = function ()
         WallR.position.set(tableWidth / 2 - 0.5, 0, tableHeight / 4);
         TableG.add(WallR);
 
-        rectLight3 = new THREE.RectAreaLight( 0x00ff00, 2, tableHeight / 2, 3 );
+        const rectLight3 = new THREE.RectAreaLight( 0x00ff00, 2, tableHeight / 2, 3 );
         rectLight3.position.set( WallR.position.x - 0.5, WallR.position.y, WallR.position.z);
         rectLight3.rotation.y = Math.PI / 2;
         TableG.add( rectLight3 );
-    ///////////////////////////////////////////////////
-        WallR1 = new THREE.Mesh(
+        
+        const WallR1 = new THREE.Mesh(
             new THREE.BoxGeometry(1, 1, tableHeight / 2),
             new THREE.MeshToonMaterial({
                 color: "cyan",
@@ -282,7 +339,7 @@ window.ai_mode = function ()
         WallR1.position.set(tableWidth / 2 - 0.5, 0, -(tableHeight / 4));
         TableG.add(WallR1);
 
-        rectLight4 = new THREE.RectAreaLight( "cyan", 2, tableHeight / 2, 3 );
+        const rectLight4 = new THREE.RectAreaLight( "cyan", 2, tableHeight / 2, 3 );
         rectLight4.position.set( WallR1.position.x - 0.5, WallR1.position.y, WallR1.position.z);
         rectLight4.rotation.y = Math.PI / 2;
         TableG.add( rectLight4 );
@@ -314,7 +371,6 @@ window.ai_mode = function ()
             })
         );
         player1.position.set(0, 0, (tableHeight / 2) - (paddle.deep / 2));
-        playerOldX = player1.position.x;
         scene.add(player1);
 
         player2 = new THREE.Mesh(
@@ -361,13 +417,6 @@ window.ai_mode = function ()
         createScore();
     }
 
-    function updateCameraPosition(role) {
-        if (role === "player1")
-            camera.position.set(0, 30, 35);
-        if (role === "player2")
-            camera.position.set(0, 30, -35);
-    }
-
     function guiControl(){
         gui.add(camera.position, "x",);
         gui.add(camera.position, "y");  
@@ -383,7 +432,6 @@ window.ai_mode = function ()
         animationId = requestAnimationFrame(animate);
         stats.update();
         controls.update();
-        // composer.render();
         renderer.render( scene, camera );
         if (wsOpen)
             sendPaddlePosition();
@@ -451,18 +499,5 @@ window.ai_mode = function ()
                 onComplete(); // Trigger the game start
             }
         }, 60);
-    }
-
-
-    function endGame(winner) {
-        // triggerShake('gameOver');
-        // Stop the game loop
-        cancelAnimationFrame(animationId);
-        // Display the game over screen
-        document.getElementById("gameOver").style.display = "flex";
-        document.getElementById("winner").innerText = `You ${winner}`;
-        document.getElementById("score").innerText = `${score.player1} - ${score.player2}`;
-        canvas.style.display = "none";
-        console.log("GAME OVER !");
     }
 }
