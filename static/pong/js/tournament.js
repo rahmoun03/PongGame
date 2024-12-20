@@ -52,7 +52,7 @@ style.textContent = `
     width: 100%;
 }
 
-.start {
+.start, .join, .back {
     width: 20%;
     location: end;
     font-family: "Pong War";
@@ -65,7 +65,7 @@ style.textContent = `
     cursor: pointer;
     transition: 0.3s ease;
 }
-.start:hover {
+.start:hover, .join:hover, .back:hover {
     background-color: gray;
 }
 
@@ -79,6 +79,25 @@ style.textContent = `
     padding: 10px;
     margin: 10px 0px 10px ;
 }
+
+#list li {
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: var(--blue);
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#list li:hover {
+    background-color: var(--red);
+}
+
+#list li.selected {
+    background-color: var(--red);
+    color: white;
+}
+
 #tournament_name, #alias {
     padding: 10px 10px;
     border: 1px solid var(--blue);
@@ -87,13 +106,29 @@ style.textContent = `
     width: 60%;
     margin: 10px 0px 10px ;
 }
+#list::-webkit-scrollbar {
+    width: 6px; /* Narrow scrollbar for a mobile-like feel */
+}
 
+#list::-webkit-scrollbar-thumb {
+    background: var(--red); /* Thumb color */
+    border-radius: 10px; /* Rounded thumb for a smooth look */
+}
+
+#list::-webkit-scrollbar-thumb:hover {
+    background: #fff; /* Darker color on hover */
+}
+
+#list::-webkit-scrollbar-track {
+    background: transparent; /* Transparent track for minimalistic style */
+}
 `;
 
 let tournaments = [];
+let User = 'arahmoun';
 
 
-function createHeaders(headers, create_tournament, join_tournament){
+function createHeaders(headers, create_tournament, join_tournament, ws){
     // headers 
     // title
     const tournament_title = document.createElement('h5');
@@ -129,6 +164,10 @@ function createHeaders(headers, create_tournament, join_tournament){
         tournament_title.textContent = "join Tournament";
         create_tournament.style.display = 'none';
         join_tournament.style.display = 'block';
+        ws.send(JSON.stringify({
+            type: 'update'
+        }));
+        availabe(join_tournament.querySelector('ul'));
     };
     
     tournament_sections.appendChild(create_button);
@@ -138,7 +177,7 @@ function createHeaders(headers, create_tournament, join_tournament){
     // finish headers
 }
 
-function createCreateTournament(create_tournament){
+function createCreateTournament(create_tournament, ws){
     // create tournament Section
 
     const form = document.createElement('form');
@@ -171,7 +210,7 @@ function createCreateTournament(create_tournament){
     start.textContent = "Create";
     back.textContent = "Back";
     start.classList.add('start');
-    back.classList.add('start');
+    back.classList.add('back');
     
     start.addEventListener( 'click', () => {
         const aliasValue = alias.value.trim();
@@ -186,10 +225,17 @@ function createCreateTournament(create_tournament){
 
         alias.value = '';
         tournament_name.value = '';
-
+        let context = JSON.stringify({
+            type: 'create',
+            name: tournamentValue,
+            creator: aliasValue,
+            creator_username: User
+        });
+        ws.send(context);
     });
 
     back.addEventListener( 'click', () => {
+        ws.close();
         render(menu(), document.body);
     });
 
@@ -207,6 +253,7 @@ function createCreateTournament(create_tournament){
 }
 
 function availabe(list){
+    console.log('availabe');
     list.innerHTML = '';
     if (tournaments.length === 0) {
         const noTournamentsItem = document.createElement('li');
@@ -259,13 +306,14 @@ function createJoinTournament(join_tournament){
 
     join.textContent = "Join";
     back.textContent = "Back";
-    join.classList.add('start');
-    back.classList.add('start');
+    join.classList.add('join');
+    back.classList.add('back');
 
     availabe(list);
     
     join.addEventListener( 'click', () => {
         const aliasValue = alias.value.trim();
+        let selectedTournament = list.querySelector('li.selected');
 
 
         if (!aliasValue || !selectedTournament) {
@@ -273,9 +321,16 @@ function createJoinTournament(join_tournament){
             return;
         }
         alert(`You (${aliasValue}) joined the tournament "${selectedTournament.name}"!`);
+        let context = JSON.stringify({
+            type: 'join',
+            name: selectedTournament.name,
+            player: aliasValue
+        });
+        ws.send(context);
     });
 
     back.addEventListener( 'click', () => {
+        ws.close();
         render(menu(), document.body);
     });
 
@@ -294,6 +349,41 @@ function createJoinTournament(join_tournament){
 
 
 export function tournamentPage(){
+    const ws_URL = 'ws://'+window.location.host+'/ws/setupTournament/';
+    const ws = new WebSocket(ws_URL);
+
+    ws.onopen = () => {
+        console.log('connected');
+        ws.send(JSON.stringify({
+            type: 'update'
+        }));
+    };
+    ws.onmessage = (event) => {
+        let data = JSON.parse(event.data);
+        console.table(data);
+        if (data.type === 'update'){
+            tournaments = data.tournaments;
+        }
+        if (data.type === 'joined'){
+            console.log('joined');
+            console.log(data);
+        }
+        if (data.type === 'created'){
+            console.log('created');
+            console.log(data);
+        }
+        if (data.type === 'error'){
+            console.log('error');
+            console.log(data.message);
+        }
+    };
+    ws.onerror = (event) => {
+        console.log(event);
+    };
+    ws.onclose = () => {
+        console.log('disconnected');
+    };
+
     const tournament = document.createElement('div');
     const headers = document.createElement('div');
     const create_tournament = document.createElement('div');
@@ -306,8 +396,8 @@ export function tournamentPage(){
     join_tournament.classList.add('join_tournament');    
 
 
-    createHeaders(headers, create_tournament, join_tournament);
-    createCreateTournament(create_tournament);
+    createHeaders(headers, create_tournament, join_tournament, ws);
+    createCreateTournament(create_tournament, ws);
     createJoinTournament(join_tournament);
 
     tournament.appendChild(style);

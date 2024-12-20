@@ -52,7 +52,7 @@ style.textContent = `
     width: 100%;
 }
 
-.start {
+.start, .join, .back {
     width: 20%;
     location: end;
     font-family: "Pong War";
@@ -65,7 +65,7 @@ style.textContent = `
     cursor: pointer;
     transition: 0.3s ease;
 }
-.start:hover {
+.start:hover, .join:hover, .back:hover {
     background-color: gray;
 }
 
@@ -79,6 +79,25 @@ style.textContent = `
     padding: 10px;
     margin: 10px 0px 10px ;
 }
+
+#list li {
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: var(--blue);
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#list li:hover {
+    background-color: var(--red);
+}
+
+#list li.selected {
+    background-color: var(--red);
+    color: white;
+}
+
 #tournament_name, #alias {
     padding: 10px 10px;
     border: 1px solid var(--blue);
@@ -129,6 +148,7 @@ function createHeaders(headers, create_tournament, join_tournament){
         tournament_title.textContent = "join Tournament";
         create_tournament.style.display = 'none';
         join_tournament.style.display = 'block';
+        availabe(join_tournament.querySelector('ul'));
     };
     
     tournament_sections.appendChild(create_button);
@@ -166,11 +186,12 @@ function createCreateTournament(create_tournament){
     tournament_name.setAttribute('placeholder', 'Enter Tournament Name');
     tournament_name.setAttribute('required', 'true');
 
+    buttons.style.display = 'flex';
     buttons.style.justifyContent = 'space-between';
     start.textContent = "Create";
     back.textContent = "Back";
     start.classList.add('start');
-    back.classList.add('start');
+    back.classList.add('back');
     
     start.addEventListener( 'click', () => {
         const aliasValue = alias.value.trim();
@@ -181,6 +202,11 @@ function createCreateTournament(create_tournament){
             return;
         }
         alert(`Tournament "${tournamentValue}" created by ${aliasValue}!`);
+        tournaments.push({ name: tournamentValue, creator: aliasValue });
+
+        alias.value = '';
+        tournament_name.value = '';
+
     });
 
     back.addEventListener( 'click', () => {
@@ -201,12 +227,29 @@ function createCreateTournament(create_tournament){
 }
 
 function availabe(list){
+    console.log('availabe');
     list.innerHTML = '';
     if (tournaments.length === 0) {
         const noTournamentsItem = document.createElement('li');
         noTournamentsItem.textContent = 'No tournaments available';
         noTournamentsItem.style.color = '#aaa'; // Gray text for "no tournaments"
         list.appendChild(noTournamentsItem);
+    } else {
+        tournaments.forEach((tournament, index) => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${tournament.name} (by ${tournament.creator})`;
+            listItem.dataset.index = index; // Store the tournament index
+            list.appendChild(listItem);
+
+            listItem.addEventListener('click', () => {
+                list.querySelectorAll('li').forEach(listItem => {
+                    listItem.classList.remove('selected');
+                });
+                listItem.classList.add('selected');
+                console.log(`Selected tournament: ${tournament.name}`);
+            });
+            list.appendChild(listItem);
+        });
     }
 }
 
@@ -220,6 +263,8 @@ function createJoinTournament(join_tournament){
     const join = document.createElement('button');
     const back = document.createElement('button');
     const buttons = document.createElement('div');
+    buttons.style.display = 'flex';
+    buttons.style.justifyContent = 'space-between';
 
     listLable.textContent = "Available Tournaments :";
     listLable.setAttribute('for', 'list');
@@ -234,9 +279,15 @@ function createJoinTournament(join_tournament){
 
 
     join.textContent = "Join";
-    join.classList.add('start');
+    back.textContent = "Back";
+    join.classList.add('join');
+    back.classList.add('back');
+
+    availabe(list);
+    
     join.addEventListener( 'click', () => {
         const aliasValue = alias.value.trim();
+        let selectedTournament = null;
 
 
         if (!aliasValue || !selectedTournament) {
@@ -250,24 +301,42 @@ function createJoinTournament(join_tournament){
         render(menu(), document.body);
     });
 
-    availabe(list);
 
     const fragment = document.createDocumentFragment();
     fragment.appendChild(aliasLabel);
     fragment.appendChild(alias);
-
-    buttons.style.alignItems = 'space-between';
     buttons.appendChild(join);
     buttons.appendChild(back);
     
+    join_tournament.appendChild(listLable);
+    join_tournament.appendChild(list);
     join_tournament.appendChild(fragment);
-    join_tournament.appendChild(aliasLabel);
-    join_tournament.appendChild(alias);
     join_tournament.appendChild(buttons);
 }
 
 
 export function tournamentPage(){
+    const ws_URL = 'ws://'+window.location.host+'/ws/setupTournament/';
+    const ws = new WebSocket(ws_URL);
+
+    ws.onopen = () => {
+        console.log('connected');
+        ws.send('connected');
+    };
+    ws.onmessage = (event) => {
+        console.log(event.data);
+        data = JSON.parse(event.data);
+        if (data.type === 'tournaments'){
+            tournaments = data.tournaments;
+        }
+    };
+    ws.onerror = (event) => {
+        console.log(event);
+    };
+    ws.onclose = () => {
+        console.log('disconnected');
+    };
+
     const tournament = document.createElement('div');
     const headers = document.createElement('div');
     const create_tournament = document.createElement('div');
