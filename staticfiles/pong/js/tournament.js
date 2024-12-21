@@ -18,6 +18,25 @@ style.textContent = `
     background: var(--blue);
     transition:  0.5s ease;
 }
+.tournament .hidden {
+    display: none;
+}
+
+#error-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--red);
+  color: white;
+  padding: 20px;
+  border-radius: 5px;
+  border: 1px solid white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  text-align: center;
+}
+
 .headers {
     display: flex;
     flex-direction: row;
@@ -52,7 +71,7 @@ style.textContent = `
     width: 100%;
 }
 
-.start, .join, .back {
+.start, .join, .back , .close{
     width: 20%;
     location: end;
     font-family: "Pong War";
@@ -65,8 +84,12 @@ style.textContent = `
     cursor: pointer;
     transition: 0.3s ease;
 }
-.start:hover, .join:hover, .back:hover {
+.start:hover, .join:hover, .back:hover, .close:hover {
     background-color: gray;
+}
+
+.close {
+    width: fit-content;
 }
 
 #list {
@@ -106,13 +129,51 @@ style.textContent = `
     width: 60%;
     margin: 10px 0px 10px ;
 }
+#list::-webkit-scrollbar {
+    width: 6px; /* Narrow scrollbar for a mobile-like feel */
+}
 
+#list::-webkit-scrollbar-thumb {
+    background: var(--red); /* Thumb color */
+    border-radius: 10px; /* Rounded thumb for a smooth look */
+}
+
+#list::-webkit-scrollbar-thumb:hover {
+    background: #fff; /* Darker color on hover */
+}
+
+#list::-webkit-scrollbar-track {
+    background: transparent; /* Transparent track for minimalistic style */
+}
 `;
 
 let tournaments = [];
+let User = 'arahmoun';
 
+function popup(error_popup) {
 
-function createHeaders(headers, create_tournament, join_tournament){
+    const error_message = document.createElement('p');
+    error_message.id = 'error-message';
+
+    const close = document.createElement('button');
+    close.classList.add('close');
+    close.textContent = 'Close';
+    close.addEventListener('click', () => {
+        error_popup.classList.add('hidden');
+    });
+    error_popup.appendChild(error_message);
+    error_popup.appendChild(close);
+}
+
+function showErrorPopup(message, error_popup) {
+    const messageElement = error_popup.querySelector('p');
+
+    console.log('showErrorPopup', messageElement);
+    messageElement.textContent = message;
+    error_popup.classList.remove('hidden');
+}
+
+function createHeaders(headers, create_tournament, join_tournament, ws){
     // headers 
     // title
     const tournament_title = document.createElement('h5');
@@ -148,6 +209,9 @@ function createHeaders(headers, create_tournament, join_tournament){
         tournament_title.textContent = "join Tournament";
         create_tournament.style.display = 'none';
         join_tournament.style.display = 'block';
+        ws.send(JSON.stringify({
+            type: 'update'
+        }));
         availabe(join_tournament.querySelector('ul'));
     };
     
@@ -158,7 +222,7 @@ function createHeaders(headers, create_tournament, join_tournament){
     // finish headers
 }
 
-function createCreateTournament(create_tournament){
+function createCreateTournament(create_tournament, ws){
     // create tournament Section
 
     const form = document.createElement('form');
@@ -201,15 +265,20 @@ function createCreateTournament(create_tournament){
             alert('Please fill out all fields.');
             return;
         }
-        alert(`Tournament "${tournamentValue}" created by ${aliasValue}!`);
-        tournaments.push({ name: tournamentValue, creator: aliasValue });
 
         alias.value = '';
         tournament_name.value = '';
-
+        let context = JSON.stringify({
+            type: 'create',
+            name: tournamentValue,
+            creator: aliasValue,
+            creator_username: User
+        });
+        ws.send(context);
     });
 
     back.addEventListener( 'click', () => {
+        ws.close();
         render(menu(), document.body);
     });
 
@@ -253,7 +322,7 @@ function availabe(list){
     }
 }
 
-function createJoinTournament(join_tournament){
+function createJoinTournament(join_tournament, ws){
     // create tournament Section
 
     const listLable = document.createElement('label');
@@ -287,17 +356,24 @@ function createJoinTournament(join_tournament){
     
     join.addEventListener( 'click', () => {
         const aliasValue = alias.value.trim();
-        let selectedTournament = null;
+        let index = list.querySelector('li.selected').dataset.index;
+        let selectedTournament = tournaments[index];
 
 
         if (!aliasValue || !selectedTournament) {
             alert('Please fill out all fields.');
             return;
         }
-        alert(`You (${aliasValue}) joined the tournament "${selectedTournament.name}"!`);
+        let context = JSON.stringify({
+            type: 'join',
+            name: selectedTournament.name,
+            player: aliasValue
+        });
+        ws.send(context);
     });
 
     back.addEventListener( 'click', () => {
+        ws.close();
         render(menu(), document.body);
     });
 
@@ -316,27 +392,6 @@ function createJoinTournament(join_tournament){
 
 
 export function tournamentPage(){
-    const ws_URL = 'ws://'+window.location.host+'/ws/setupTournament/';
-    const ws = new WebSocket(ws_URL);
-
-    ws.onopen = () => {
-        console.log('connected');
-        ws.send('connected');
-    };
-    ws.onmessage = (event) => {
-        console.log(event.data);
-        data = JSON.parse(event.data);
-        if (data.type === 'tournaments'){
-            tournaments = data.tournaments;
-        }
-    };
-    ws.onerror = (event) => {
-        console.log(event);
-    };
-    ws.onclose = () => {
-        console.log('disconnected');
-    };
-
     const tournament = document.createElement('div');
     const headers = document.createElement('div');
     const create_tournament = document.createElement('div');
@@ -348,14 +403,64 @@ export function tournamentPage(){
     create_tournament.classList.add('create_tournament');
     join_tournament.classList.add('join_tournament');    
 
+    const error_popup = document.createElement('div');
+    error_popup.id = 'error-popup';
+    error_popup.classList.add('hidden');
 
-    createHeaders(headers, create_tournament, join_tournament);
-    createCreateTournament(create_tournament);
-    createJoinTournament(join_tournament);
 
-    tournament.appendChild(style);
-    tournament.appendChild(headers);
-    tournament.appendChild(create_tournament);
-    tournament.appendChild(join_tournament);
+
+    const ws_URL = 'ws://'+window.location.host+'/ws/setupTournament/';
+    const ws = new WebSocket(ws_URL);
+
+    ws.onopen = () => {
+        console.log('connected');
+
+        createHeaders(headers, create_tournament, join_tournament, ws);
+        createCreateTournament(create_tournament, ws);
+        createJoinTournament(join_tournament, ws);
+        popup(error_popup);
+
+        tournament.appendChild(style);
+        tournament.appendChild(headers);
+        tournament.appendChild(create_tournament);
+        tournament.appendChild(join_tournament);
+        tournament.appendChild(error_popup);
+        
+        ws.send(JSON.stringify({
+            type: 'update'
+        }));
+    };
+    ws.onmessage = (event) => {
+        let data = JSON.parse(event.data);
+        console.table(data);
+        if (data.type === 'update'){
+            tournaments = data.tournaments;
+            availabe(join_tournament.querySelector('ul'));
+        }
+        if (data.type === 'joined'){
+            console.log('joined');
+            console.log(data);
+            ws.close();
+            render(matchmakingPage(data), document.body);
+        }
+        if (data.type === 'created'){
+            console.log('created');
+            console.log(data);
+            ws.close();
+            render(matchmakingPage(data), document.body);
+        }
+        if (data.type === 'error'){
+            console.log('error');
+            console.log(data.message);
+            showErrorPopup(data.message, error_popup);
+        }
+    };
+    ws.onerror = (event) => {
+        console.log(event);
+    };
+    ws.onclose = () => {
+        console.log('disconnected');
+    };
+
     return tournament;
 }
