@@ -109,3 +109,190 @@ TODO AI Improvement:
     </div>
     
     
+
+
+
+
+
+    // tournament match making section
+
+    const participantsList = document.getElementById('participants');
+    const matchesList = document.getElementById('matches');
+    const matchmakingSection = document.getElementById('matchmaking-section');
+
+
+
+    // Simulate adding a participant
+    // function addParticipant() {
+    //     updateParticipantList();
+    //     generateMatches();
+    // }
+
+    // Update the participant list UI
+    function updateParticipantList() {
+        participantsList.innerHTML = '';
+        participants.forEach(participant => {
+            const listItem = document.createElement('li');
+            listItem.textContent = participant;
+            participantsList.appendChild(listItem);
+        });
+    }
+
+    // Generate matches dynamically
+    function generateMatches() {
+        matches.length = 0; // Clear previous matches
+
+        // Pair participants
+        const shuffledParticipants = [...participants].sort(() => Math.random() - 0.5); // Shuffle
+        for (let i = 0; i < shuffledParticipants.length; i += 2) {
+            if (shuffledParticipants[i + 1]) {
+                matches.push({player1: shuffledParticipants[i], player2: shuffledParticipants[i + 1]});
+            } else {
+                matches.push({plaer1: shuffledParticipants[i], player2: 'Bye'});
+            }
+        }
+
+        updateMatchesList();
+    }
+    // Update the matches UI
+    function updateMatchesList() {
+        matchesList.innerHTML = '';
+        matches.forEach(match => {
+            const matchItem = document.createElement('li');
+            matchItem.innerHTML = `
+                <span>${match.player1}</span> 
+                <span class="vs">VS</span> 
+                <span>${match.player2}</span>`;
+            matchesList.appendChild(matchItem);
+        });
+    }
+
+
+    <body>
+        <div id="matchmaking-section" class="section">
+
+          <!-- Participants Section -->
+          <div class="section">
+            <h2>Participants</h2>
+            <div class="participants">
+              <div class="participant-card">
+                <span>Player 1</span>
+              </div>
+              <div class="participant-card">
+                <span>Player 2</span>
+              </div>
+              <div class="participant-card">
+                <span>Player 3</span>
+              </div>
+              <div class="participant-card">
+                <span>Player 4</span>
+              </div>
+            </div>
+          </div>
+      
+          <!-- Next Match Section -->
+          <div class="section next-match">
+            <h2>Next Match</h2>
+            <div>
+              <span>Player 1</span>
+              <span class="vs">VS</span>
+              <span>Player 2</span>
+            </div>
+          </div>
+      
+          <!-- Tournament Progress Section -->
+          <div class="section">
+            <h2>Tournament Bracket</h2>
+            <div class="bracket">
+              <!-- Round 1 -->
+              <section class="round">
+                <h3>Round 1</h3>
+                <div class="match-list">
+                  <div class="match">
+                    <span>Player 1</span>
+                    <span class="vs">VS</span>
+                    <span>Player 2</span>
+                  </div>
+                  <div class="match">
+                    <span>Player 3</span>
+                    <span class="vs">VS</span>
+                    <span>Player 4</span>
+                  </div>
+                </div>
+              </section>
+          
+              <!-- Round 2 -->
+              <section class="round">
+                <h3>Round 2</h3>
+                <div class="match-list">
+                  <div class="match winner">
+                    <span>Winner 1</span>
+                    <span class="vs">VS</span>
+                    <span>Winner 2</span>
+                  </div>
+                </div>
+              </section>
+          
+              <!-- Winner -->
+              <section class="round">
+                <h3>Winner</h3>
+                <div class="match">
+                  <span>Champion: Winner</span>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </body>
+
+
+
+
+
+
+
+
+
+
+      // Create the tournament bracket
+      function createTournamentProgress() {
+          const bracketContainer = document.createElement('div');
+          bracketContainer.classList.add('tournament-bracket');
+          bracketContainer.style.display = 'flex';
+          bracketContainer.style.flexDirection = 'column';
+          bracketContainer.style.gap = '20px';
+  
+          // Round 1
+          const round1 = document.createElement('div');
+          round1.classList.add('round');
+          round1.innerHTML = `
+              <h3>Round 1</h3>
+              <div class="match">
+                  <span>Player 1</span>
+                  <span class="vs">VS</span>
+                  <span>Player 2</span>
+              </div>
+              <div class="match">
+                  <span>Player 3</span>
+                  <span class="vs">VS</span>
+                  <span>Player 4</span>
+              </div>
+          `;
+          bracketContainer.appendChild(round1);
+  
+          // Final Round
+          const finalRound = document.createElement('div');
+          finalRound.classList.add('round');
+          finalRound.innerHTML = `
+              <h3>Final</h3>
+              <div class="match">
+                  <span>Winner of Match 1</span>
+                  <span class="vs">VS</span>
+                  <span>Winner of Match 2</span>
+              </div>
+          `;
+          bracketContainer.appendChild(finalRound);
+  
+          // Append the bracket to the tournament map section
+          tournamentProgressSection.appendChild(bracketContainer);
+      }

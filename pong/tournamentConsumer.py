@@ -185,3 +185,53 @@ class TournametSetup(AsyncWebsocketConsumer):
     #         return True
     #     except Tournament.DoesNotExist:
     #         return False
+
+
+class matchmaking(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.room_group_name = None
+        self.alias = None
+        self.participants = None
+        self.tournament = None
+
+        await self.accept()
+    
+
+    async def disconnect(self, close_code):
+        pass
+
+
+    async def receive(self, text_data):
+
+        data = json.loads(text_data)
+        print(data)
+        if data["type"] == "join":
+            self.tournament = await self.get_tournament(data["name"])
+            self.room_group_name = data["name"]
+            self.alias = data["alias"]
+            self.participants = await self.get_participants(self.tournament)
+            
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
+            await self.channel_layer.group_send(self.room_group_name, {
+                "type": "update",
+                "participants": self.participants
+            })
+
+
+
+    async def update(self, event):
+        await self.send(text_data=json.dumps(event))
+
+    @database_sync_to_async
+    def get_tournament(self, name):
+        Tournament = apps.get_model('pong', 'Tournament')
+        return Tournament.objects.get(name=name)
+    
+
+    @database_sync_to_async
+    def get_participants(self, tournament):
+        return list(tournament.participants.values("alias"))
+    

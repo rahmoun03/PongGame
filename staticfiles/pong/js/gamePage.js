@@ -3,6 +3,7 @@ import { menu } from './loby.js';
 import { waitingPage } from './waiting.js';
 import { GameOver } from './gameOver.js'
 import { tournamentPage } from './tournament.js'
+import { matchmakingPage } from './tournament_matchmaking.js';
 
 class GamePage extends HTMLElement {
 
@@ -37,7 +38,7 @@ class GamePage extends HTMLElement {
         shadow.appendChild(style);
         shadow.appendChild(main);
         render(menu(), document.body);
-        // render(tournamentPage(), document.body);
+        // render(matchmakingPage('ayoub', "GALAXY"), document.body);
     }
 }
 

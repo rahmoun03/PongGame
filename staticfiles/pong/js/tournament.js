@@ -1,5 +1,6 @@
 import { render } from "./render.js";
 import { menu } from "./loby.js";
+import { matchmakingPage } from "./tournament_matchmaking.js";
 
 const style = document.createElement('style');
 style.textContent = `
@@ -262,12 +263,10 @@ function createCreateTournament(create_tournament, ws){
         const tournamentValue = tournament_name.value.trim();
         
         if (!aliasValue || !tournamentValue) {
-            alert('Please fill out all fields.');
+            // alert('Please fill out all fields.');
             return;
         }
 
-        alias.value = '';
-        tournament_name.value = '';
         let context = JSON.stringify({
             type: 'create',
             name: tournamentValue,
@@ -275,6 +274,8 @@ function createCreateTournament(create_tournament, ws){
             creator_username: User
         });
         ws.send(context);
+        alias.value = '';
+        tournament_name.value = '';
     });
 
     back.addEventListener( 'click', () => {
@@ -361,7 +362,7 @@ function createJoinTournament(join_tournament, ws){
 
 
         if (!aliasValue || !selectedTournament) {
-            alert('Please fill out all fields.');
+            // alert('Please fill out all fields.');
             return;
         }
         let context = JSON.stringify({
@@ -441,13 +442,13 @@ export function tournamentPage(){
             console.log('joined');
             console.log(data);
             ws.close();
-            render(matchmakingPage(data), document.body);
+            render(matchmakingPage(data.player, data.name), document.body);
         }
         if (data.type === 'created'){
             console.log('created');
             console.log(data);
             ws.close();
-            render(matchmakingPage(data), document.body);
+            render(matchmakingPage(data.creator, data.name), document.body);
         }
         if (data.type === 'error'){
             console.log('error');
