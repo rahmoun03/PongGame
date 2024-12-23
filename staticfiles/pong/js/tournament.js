@@ -410,7 +410,7 @@ export function tournamentPage(){
 
 
 
-    const ws_URL = 'ws://'+window.location.host+'/ws/setupTournament/';
+    const ws_URL = 'ws://'+window.location.host+'/ws/setupTournament/remoute/';
     const ws = new WebSocket(ws_URL);
 
     ws.onopen = () => {

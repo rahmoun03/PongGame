@@ -4,6 +4,7 @@ import { waitingPage } from './waiting.js';
 import { GameOver } from './gameOver.js'
 import { tournamentPage } from './tournament.js'
 import { matchmakingPage } from './tournament_matchmaking.js';
+import { createWinnerCard } from './winnerCard.js';
 
 class GamePage extends HTMLElement {
 
@@ -28,6 +29,10 @@ class GamePage extends HTMLElement {
                 width: 100%;
             }
             .game-page {
+                font-family: "Pong War", sans-serif;
+                color: var(--white);
+                margin: 0;
+                padding: 0;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -37,8 +42,8 @@ class GamePage extends HTMLElement {
         `;
         shadow.appendChild(style);
         shadow.appendChild(main);
-        render(menu(), document.body);
-        // render(matchmakingPage('ayoub', "GALAXY"), document.body);
+        render(menu(), main);
+        // render(createWinnerCard("AYOUB"), main);
     }
 }
 

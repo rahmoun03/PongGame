@@ -4,6 +4,7 @@ import { ai_mode } from './aimode.js';
 import { local_1vs1 } from './local_1vs1.js';
 import { online_1vs1 } from './online_1vs1.js';
 import { tournamentPage } from './tournament.js';
+import { tournamentlocal } from './localTournament.js';
 
 let  switchButton = new Audio('static/pong/sound/switch.mp3');
 let click = new Audio('static/pong/sound/menu-click-89198.mp3');
@@ -137,7 +138,8 @@ export function menu() {
       case 'Tournament':
         console.log('Tournament');
         section = 1;
-        render(tournamentPage(), document.body);
+        // render(tournamentPage(), document.body.querySelector('game-page').shadowRoot.querySelector('.game-page'));
+        render(tournamentlocal(), document.body.querySelector('game-page').shadowRoot.querySelector('.game-page'));
         break;
       case 'Back':
         if(section == 1)

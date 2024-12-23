@@ -187,7 +187,7 @@ class TournametSetup(AsyncWebsocketConsumer):
     #         return False
 
 
-class matchmaking(AsyncWebsocketConsumer):
+class RemoteMatchmaking(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_group_name = None
         self.alias = None
@@ -207,17 +207,17 @@ class matchmaking(AsyncWebsocketConsumer):
         print(data)
         if data["type"] == "join":
             self.tournament = await self.get_tournament(data["name"])
-            self.room_group_name = data["name"]
+            self.room_group_name = data["name"].replace(" ", "_")
             self.alias = data["alias"]
             self.participants = await self.get_participants(self.tournament)
-            
+            list_of_participants = [participant["alias"] for participant in self.participants]
             await self.channel_layer.group_add(
                 self.room_group_name,
                 self.channel_name
             )
             await self.channel_layer.group_send(self.room_group_name, {
                 "type": "update",
-                "participants": self.participants
+                "participants": list_of_participants
             })
 
 
@@ -235,3 +235,36 @@ class matchmaking(AsyncWebsocketConsumer):
     def get_participants(self, tournament):
         return list(tournament.participants.values("alias"))
     
+
+class LocalMatchmaking(AsyncWebsocketConsumer):
+
+    async def connect(self):
+        self.participants = None
+        self.tournament = None
+
+        await self.accept()
+    
+
+    async def disconnect(self, close_code):
+        pass
+
+
+    async def receive(self, text_data):
+
+        data = json.loads(text_data)
+        print(data)
+        if data["type"] == "join":
+            self.participants = data["participants"]
+            self.tournament = data["name"]
+            await self.send(json.dumps({
+                "type": "joined",
+                "name": self.tournament,
+                "participants": self.participants
+            }))
+
+
+
+
+    async def update(self, event):
+        await self.send(text_data=json.dumps(event))
+

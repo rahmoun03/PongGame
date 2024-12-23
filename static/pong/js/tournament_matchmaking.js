@@ -40,7 +40,7 @@ style.textContent = `
     text-align: center;
     border-radius: 8px;
     border: 2px solid transparent;
-    transition: 0.3s;
+    transition: 0.5s;
 }
     
 .default {
@@ -93,7 +93,7 @@ style.textContent = `
 
 .match {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
     background: #252525;
     padding: 10px 15px;
@@ -238,9 +238,11 @@ export function matchmakingPage(alias, tournamentName) {
 
     // generate matches
     function generateMatches() {
-        for (let i = 0; i < participants.length; i++) {
+        matches = [];
+        console.table(participants);
+        for (let i = 0; i < participants.length; i += 2) {
             if (participants[i + 1]) {
-
+                
                 matches.push({
                     player1: participants[i],
                     player2: participants[i + 1],
@@ -248,17 +250,19 @@ export function matchmakingPage(alias, tournamentName) {
             }
             else {
                 matches.push({
-                    player1: participants[i],
-                    player2: null,
+                    player1: participants[i]
                 });
+                return;
             }
         }
     }
 
 
     // Update the participants list
+
     createParticipantList();
     createTournamentProgress();
+
 
 
 
@@ -279,8 +283,9 @@ export function matchmakingPage(alias, tournamentName) {
         const data = JSON.parse(event.data);
         console.log(data);
         if (data.type === 'update') {
-            participants = JSON.parse(data.participants);
+            participants = data.participants;
             generateMatches();
+            console.table(matches);
             createParticipantList();
             createTournamentProgress();
         }
