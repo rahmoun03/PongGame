@@ -11,5 +11,5 @@ websocket_urlpatterns = [
     path('ws/setupTournament/remoute/', t.TournametSetup.as_asgi()),
     path('ws/setupTournament/local/', t.TournametSetup.as_asgi()),
     path('ws/tournament/matchmaking/', t.RemoteMatchmaking.as_asgi()),
-    path('ws/tournament/matchmaking/', t.LocalMatchmaking.as_asgi()),
+    path('ws/tournament/local/', t.LocalMatchmaking.as_asgi()),
 ]

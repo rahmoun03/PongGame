@@ -1,39 +1,6 @@
 import { render  } from "./render.js";
 import { GameOver } from "./gameOver.js";
 
-const style = document.createElement('style');
-style.textContent = `
-    canvas {
-        width: 100%;
-        height: 100%;
-    }
-    .countdown {
-        color: var(--red);
-        text-shadow: 2px 0 white, -2px 0 white, 0 2px white, 0 -2px white,
-            1px 1px white, -1px -1px white, 1px -1px white, -1px 1px white;
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        text-align: center;
-        place-content: center;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(255, 0, 0, 0);
-    }
-    .pongCanvas {
-        display: flex;
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        width: 100%;
-        height: 100%;
-        justify-content: center;
-        align-items: center;
-    }
-`;
-
 function gameCanvas() {
     const canvas = document.createElement('canvas');
     canvas.style.display = 'flex';
@@ -53,6 +20,38 @@ function createcountdown() {
 
 export function local_1vs1()
 {
+    const style = document.createElement('style');
+    style.textContent = `
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+        .countdown {
+            color: var(--red);
+            text-shadow: 2px 0 white, -2px 0 white, 0 2px white, 0 -2px white,
+                1px 1px white, -1px -1px white, 1px -1px white, -1px 1px white;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            text-align: center;
+            place-content: center;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 0);
+        }
+        .pongCanvas {
+            display: flex;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+    `;
     const countdownElement = createcountdown();
     const canvas = gameCanvas();
 
@@ -183,6 +182,8 @@ export function local_1vs1()
         }
         if (data.type === "game_over") {
             score = data.score;
+            cancelAnimationFrame(animationId);
+            socket.close();
             render(GameOver(data.winner, score), document.body);
         }
     };
@@ -458,26 +459,6 @@ export function local_1vs1()
             mode: selectedMode,
         }));
     }
-
-    // function shakeCamera(camera) {
-    //     const originalPosition = camera.position.clone();
-    //     const shakeStrength = 0.3;
-    //     const shakeDuration = 200; // in milliseconds
-    
-    //     const startTime = Date.now();
-    //     function shake() {
-    //         const elapsed = Date.now() - startTime;
-    //         if (elapsed < shakeDuration) {
-    //             camera.position.x = originalPosition.x + ((Math.random() - 1) * 2) * shakeStrength;
-    //             camera.position.y = originalPosition.y + ((Math.random() - 1) * 2) * shakeStrength;
-    //             camera.position.z = originalPosition.z + ((Math.random() - 1) * 2) * shakeStrength;
-    //             requestAnimationFrame(shake);
-    //         } else {
-    //             camera.position.copy(originalPosition); // Reset camera1 position
-    //         }
-    //     }
-    //     shake();
-    // }
 
     function shakeCamera(camera, intensity = 0.3, duration = 0.5) {
         const originalPosition = camera.position.clone(); // Store the original position

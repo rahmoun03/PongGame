@@ -1,112 +1,290 @@
-export function tournamentBracket(teams) {
-    // Create a style element
+export function tournamentBracket(
+    matches = [
+        { player1: 'T1', player2: 'T2' },	
+        { player1: 'T3', player2: 'T4' },
+    ],
+    currentMatch = 1,
+    ws = null
+) {
     const style = document.createElement('style');
     style.textContent = `
-.tournament-bracket {
-    display: flex;
-    padding: 20px;
-    font-family: Arial, sans-serif;
-}
+        .tournament-container {
+            font-family: 'Pong War';
+            letter-spacing: 3px;
+            padding: 2rem;
+            border-radius: 5px;
+            color: white;
+        }
 
-.rounds {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    margin-right: 40px;
-}
+        .bracket-title {
+            font-size: 1.875rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
 
-.match {
-    display: flex;
-    flex-direction: column;
-    margin: 10px 0;
-    position: relative;
-}
+        .bracket-content {
+            display: flex;
+            align-items: center;
+            gap: 4rem;
+        }
 
-.team {
-    border: 1px solid #ccc;
-    padding: 10px;
-    width: 150px;
-    background: #f5f5f5;
-    position: relative;
-}
+        .round-bracket {
+            display: flex;
+            flex-direction: column;
+            gap: 4rem;
+        }
 
-.team:first-child {
-    border-bottom: none;
-}
+        .match-bracket {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border-radius: 5px;
+            gap: 5px;
+        }
 
-.team.winner {
-    background: #e6ffe6;
-}
+        .team {
 
-.connector {
-    position: absolute;
-    right: -40px;
-    top: 50%;
-    width: 40px;
-    height: 2px;
-    background: #ccc;
-}
+            width: 200px;
+            padding: 1rem;
+            background: #1e1e1e;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.7);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
 
-.round-2 .match {
-    margin-top: 50px;
-}
+        .team.winner {
+            background: var(--orange);
+        }
 
-.trophy {
-    align-self: center;
-    font-size: 24px;
-    margin-left: 20px;
-}
-`;
+        .team span {
+            font-size: 0.9rem;
+            display: block;
+            color: rgba(255, 255, 255, 0.5);
+        }
 
-    // Function to create a team element
-    function createTeam(name, isWinner) {
+        .connector-up,
+        .connector-down,
+        .connector-final {
+            position: absolute;
+            width: 8rem;
+            height: 50%;
+            right: -8rem;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-left: none;
+        }
+
+        .connector-up {
+            border-bottom: none;
+            top: 50%;
+        }
+
+        .connector-down {
+            border-top: none;
+            top: 0;
+        }
+
+        .connector-final {
+            display: none;
+        }
+
+        .trophy {
+            font-size: 4rem;
+            margin-top: 1rem;
+            text-align: center;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .final-winner {
+            background: var(--orange);
+            padding: 1rem;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: normal;
+            margin-bottom: 1rem;
+            width: 200px;
+        }
+
+        .round {
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .round h3 {
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .match {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #252525;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+
+        .match .vs {
+            font-family: 'Pong War', 'Roboto', sans-serif;
+            color: #00bcd4;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 10px 10px;
+            font-family: "Pong War";
+            letter-spacing: 2px;
+            color: white;
+            background-color: var(--red);
+            border: 1px solid white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.5s ease;
+        }
+        button:hover {
+            background-color: gray;
+        }
+    `;
+
+    function createTeam(name, score = null, isWinner = false) {
         const team = document.createElement('div');
         team.className = `team ${isWinner ? 'winner' : ''}`;
-        team.textContent = name;
+        team.innerHTML = `${name} ${score !== null ? `<span>Score: ${score}</span>` : ''}`;
         return team;
     }
 
-    // Function to create a match element
-    function createMatch(team1, team2, winner) {
-        const match = document.createElement('div');
-        match.className = 'match';
+    function createMatch(match, position, isCurrent = false) {
+        const matchContainer = document.createElement('div');
+        matchContainer.className = 'match-bracket';
+        if (isCurrent) {
+            matchContainer.style.border = '4px solid green';
+        }
+        if (!match) {
+            const winner1 = createTeam("winner 1");
+            const winner2 = createTeam("winner 2");
 
-        match.appendChild(createTeam(team1, team1 === winner));
-        match.appendChild(createTeam(team2, team2 === winner));
+            winner1.style.color = 'rgba(104, 104, 104, 0.7)';
+            winner2.style.color = 'rgba(104, 104, 104, 0.7)';
+
+            matchContainer.appendChild(winner1);
+            matchContainer.appendChild(winner2);              
+            return matchContainer;
+        }
+        matchContainer.appendChild(createTeam(match.player1, match.scores?.[0] ?? null, match.player1 === match.winner));
+        matchContainer.appendChild(createTeam(match.player2, match.scores?.[1] ?? null, match.player2 === match.winner));
 
         const connector = document.createElement('div');
-        connector.className = 'connector';
-        match.appendChild(connector);
+        connector.className = `connector-${position}`;
+        matchContainer.appendChild(connector);
 
-        return match;
+        return matchContainer;
     }
 
-    // Create tournament bracket container
-    const tournamentContainer = document.createElement('div');
-    tournamentContainer.className = 'tournament-bracket';
+    const container = document.createElement('div');
+    container.className = 'tournament-container';
 
-    // Create rounds
-    const roundsContainer1 = document.createElement('div');
-    roundsContainer1.className = 'rounds round-1';
+    const title = document.createElement('h2');
+    title.className = 'bracket-title';
+    title.textContent = 'Tournament';
 
-    roundsContainer1.appendChild(createMatch(teams[0], teams[1], teams[1]));
-    roundsContainer1.appendChild(createMatch(teams[2], teams[3], teams[2]));
+    const content = document.createElement('div');
+    content.className = 'bracket-content';
 
-    const roundsContainer2 = document.createElement('div');
-    roundsContainer2.className = 'rounds round-2';
+    const round1 = document.createElement('div');
+    round1.className = 'round-bracket';
 
-    roundsContainer2.appendChild(createMatch(teams[1], teams[2], teams[2]));
+    const round2 = document.createElement('div');
+    round2.className = 'round-bracket';
 
-    // Trophy
+    const finalColumn = document.createElement('div');
+    const winner = document.createElement('div');
+    winner.className = 'final-winner';
+    winner.textContent = 'Winner';
+    winner.style.color = 'rgba(255, 255, 255, 0.7)';
+
     const trophy = document.createElement('div');
     trophy.className = 'trophy';
     trophy.textContent = '🏆';
 
-    // Append everything
-    tournamentContainer.appendChild(style);
-    tournamentContainer.appendChild(roundsContainer1);
-    tournamentContainer.appendChild(roundsContainer2);
-    tournamentContainer.appendChild(trophy);
+    finalColumn.appendChild(winner);
+    finalColumn.appendChild(trophy);
 
-    return tournamentContainer;
+    const CurrentRound = document.createElement('div');
+    CurrentRound.classList.add('round');
+    CurrentRound.innerHTML = `
+        <h3>Round ${currentMatch}</h3>
+        <div class="match">
+            <span>${matches[currentMatch - 1].player1}</span>
+            <span class="vs">VS</span>
+            <span>${matches[currentMatch - 1].player2}</span>
+        </div>
+    `;
+
+    // Dynamically populate matches
+    if (!matches[2]) {
+        round1.appendChild(createMatch(matches[0], 'up', currentMatch === 1));	
+        round1.appendChild(createMatch(matches[1], 'down', currentMatch === 2));
+        round2.appendChild(createMatch(null, 'final', currentMatch === 3));
+    } else {
+        round1.appendChild(createMatch(matches[0], 'up', currentMatch === 1));
+        round1.appendChild(createMatch(matches[1], 'down', currentMatch === 2));
+        round2.appendChild(createMatch(matches[2], 'final', currentMatch === 3));
+        winner.textContent = matches[2].winner?.winner || 'Winner';
+    }
+
+    // Add buttons start and back
+
+    const buttons = document.createElement('div');
+    buttons.style.display = 'flex';
+    buttons.style.justifyContent = 'space-between';
+    buttons.style.marginTop = '2rem';
+
+    const startButton = document.createElement('button');
+    startButton.textContent = 'Start Tournament';
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = 'cancel';
+
+    buttons.appendChild(cancelButton);
+    buttons.appendChild(startButton);
+
+
+    // Event listeners
+    startButton.addEventListener('click', () => {
+        // event.preventDefault();
+        ws.send(JSON.stringify({ type: 'start' }));
+    });
+
+    content.appendChild(round1);
+    content.appendChild(round2);
+    content.appendChild(finalColumn);
+
+    container.appendChild(style);
+    container.appendChild(title);
+    container.appendChild(content);
+    if (currentMatch <= 3) {
+        container.appendChild(CurrentRound);
+    }
+    container.appendChild(buttons);
+
+    return container;
 }

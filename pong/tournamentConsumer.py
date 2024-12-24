@@ -1,6 +1,7 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.apps import apps
+import random
 import json
 
 class TournametSetup(AsyncWebsocketConsumer):
@@ -239,8 +240,10 @@ class RemoteMatchmaking(AsyncWebsocketConsumer):
 class LocalMatchmaking(AsyncWebsocketConsumer):
 
     async def connect(self):
-        self.participants = None
+        self.participants = []
+        self.matches = {}
         self.tournament = None
+        self.current_round = 1
 
         await self.accept()
     
@@ -255,16 +258,25 @@ class LocalMatchmaking(AsyncWebsocketConsumer):
         print(data)
         if data["type"] == "join":
             self.participants = data["participants"]
+            random.shuffle(self.participants)
+            self.current_round = 3
             self.tournament = data["name"]
+
+            self.matches = [
+                # { "player1": self.participants[0], "player2": self.participants[1] },
+                # { "player1": self.participants[2], "player2": self.participants[3] },
+                { "player1": self.participants[0], "player2": self.participants[1], "winner": self.participants[1], "scores": [3, 7] },
+                { "player1": self.participants[2], "player2": self.participants[3], "winner": self.participants[2], "scores": [6, 5] },
+                { "player1": self.participants[1], "player2": self.participants[2] }
+            ]
+
+
             await self.send(json.dumps({
                 "type": "joined",
                 "name": self.tournament,
-                "participants": self.participants
+                "matches": self.matches,
+                "round": self.current_round,
             }))
+        
 
-
-
-
-    async def update(self, event):
-        await self.send(text_data=json.dumps(event))
 

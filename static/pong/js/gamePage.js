@@ -4,6 +4,10 @@ import { waitingPage } from './waiting.js';
 import { GameOver } from './gameOver.js'
 import { tournamentPage } from './tournament.js'
 import { matchmakingPage } from './tournament_matchmaking.js';
+import { tournamentlocal } from './localTournament.js';
+import { manageLocalTournament } from './manage_local_tour.js';
+// import { matchmakingPage } from './localmatchmaking.js';
+
 import { createWinnerCard } from './winnerCard.js';
 
 class GamePage extends HTMLElement {
@@ -43,7 +47,13 @@ class GamePage extends HTMLElement {
         shadow.appendChild(style);
         shadow.appendChild(main);
         render(menu(), main);
-        // render(createWinnerCard("AYOUB"), main);
+        let participants = [
+            'ayoub',
+            'mohamed',
+            'amine',
+            'ali',
+        ];
+        render(manageLocalTournament(participants, "GALAXY"), main);
     }
 }
 

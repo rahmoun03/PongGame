@@ -1,6 +1,7 @@
 import { render } from "./render.js";
 import { menu } from "./loby.js";
 import { tournamentBracket } from "./bracket.js";
+import { manageLocalTournament } from "./manage_local_tour.js";
 
 const style = document.createElement('style');
 style.textContent = `
@@ -116,9 +117,7 @@ export function tournamentlocal() {
             participants,
         });
 
-        render(tournamentBracket(participants), document.body.querySelector('game-page').shadowRoot.querySelector('.game-page'));
-        // Proceed to the next stage (e.g., rendering the tournament bracket)
-        // alert(`Tournament "${tournamentName}" started with participants: ${participants.join(', ')}`);
+        manageLocalTournament(participants, tournamentName);
     });
 
     backButton.addEventListener('click', () => {
@@ -130,8 +129,6 @@ export function tournamentlocal() {
     buttons.style.justifyContent = 'space-between';
     buttons.appendChild(backButton);
     buttons.appendChild(startButton);
-
-
 
     form.appendChild(tournamentNameLabel);
     form.appendChild(tournamentNameInput);
