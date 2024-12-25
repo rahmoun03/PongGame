@@ -64,7 +64,6 @@ export function local_1vs1()
 
     const local_URL = 'ws://'+window.location.host+'/ws/local_1vs1/';
     let wsOpen = false;
-    const selectedMode = "local_1vs1";
     let ball_config, ball, player1_config, player2_config, plane, table_config, paddle, score, animationId, role, composer;
     let player2Direction = 0, player1Direction = 0;
     let player1ScoreMesh, player2ScoreMesh;
@@ -132,7 +131,7 @@ export function local_1vs1()
         socket.send(JSON.stringify({
 			type: "countdown",
 			width: width,
-			height: height
+			height: height,
 		}));
     };
     socket.onmessage = (e) => {

@@ -19,6 +19,7 @@ class Local1vs1Consumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.is_active = True
+        self.mode = "local"
         self.width = 800
         self.height = 400
         self.speed = 1
@@ -52,6 +53,7 @@ class Local1vs1Consumer(AsyncWebsocketConsumer):
         if data["type"] == "countdown":
             self.width = data["width"]
             self.height = data["height"]
+            self.mode = data["mode"]
             await self.restart_game()
            
             await self.channel_layer.group_send(

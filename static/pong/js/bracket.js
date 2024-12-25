@@ -1,3 +1,8 @@
+import { local_1vs1 } from "./local_1vs1.js";
+import { render } from "./render.js";
+import { menu } from "./loby.js";
+
+
 export function tournamentBracket(
     matches = [
         { player1: 'T1', player2: 'T2' },	
@@ -231,16 +236,17 @@ export function tournamentBracket(
     finalColumn.appendChild(trophy);
 
     const CurrentRound = document.createElement('div');
-    CurrentRound.classList.add('round');
-    CurrentRound.innerHTML = `
-        <h3>Round ${currentMatch}</h3>
-        <div class="match">
-            <span>${matches[currentMatch - 1].player1}</span>
-            <span class="vs">VS</span>
-            <span>${matches[currentMatch - 1].player2}</span>
-        </div>
-    `;
-
+    if (currentMatch <= 3) {
+        CurrentRound.classList.add('round');
+        CurrentRound.innerHTML = `
+            <h3>Round ${currentMatch}</h3>
+            <div class="match">
+                <span>${matches[currentMatch - 1].player1}</span>
+                <span class="vs">VS</span>
+                <span>${matches[currentMatch - 1].player2}</span>
+            </div>
+        `;
+    }
     // Dynamically populate matches
     if (!matches[2]) {
         round1.appendChild(createMatch(matches[0], 'up', currentMatch === 1));	
@@ -250,7 +256,8 @@ export function tournamentBracket(
         round1.appendChild(createMatch(matches[0], 'up', currentMatch === 1));
         round1.appendChild(createMatch(matches[1], 'down', currentMatch === 2));
         round2.appendChild(createMatch(matches[2], 'final', currentMatch === 3));
-        winner.textContent = matches[2].winner?.winner || 'Winner';
+        winner.textContent = matches[2].winner ? matches[2].winner : 'Winner';
+        console.log(matches[2].winner);
     }
 
     // Add buttons start and back
@@ -265,14 +272,28 @@ export function tournamentBracket(
     const cancelButton = document.createElement('button');
     cancelButton.textContent = 'cancel';
 
+    if (currentMatch > 3) {
+        startButton.style.display = 'none';
+        startButton.disabled = true;
+    }
+
     buttons.appendChild(cancelButton);
     buttons.appendChild(startButton);
 
 
     // Event listeners
     startButton.addEventListener('click', () => {
-        // event.preventDefault();
-        ws.send(JSON.stringify({ type: 'start' }));
+
+        console.log('start match');
+
+        
+            ws.send(JSON.stringify({ type: 'countdown' }));
+    });
+
+    cancelButton.addEventListener('click', () => {
+        ws.send(JSON.stringify({ type: 'cancel' }));
+        ws.close();
+        render(menu(), document.body.querySelector('game-page').shadowRoot.querySelector('.game-page'));
     });
 
     content.appendChild(round1);
