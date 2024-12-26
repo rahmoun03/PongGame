@@ -53,7 +53,6 @@ class Local1vs1Consumer(AsyncWebsocketConsumer):
         if data["type"] == "countdown":
             self.width = data["width"]
             self.height = data["height"]
-            self.mode = data["mode"]
             await self.restart_game()
            
             await self.channel_layer.group_send(

@@ -297,10 +297,7 @@ class LocalMatchmaking(AsyncWebsocketConsumer):
             self.tournament = data["name"]
             self.matches = [
                 { "player1": self.participants[0], "player2": self.participants[1] },
-                { "player1": self.participants[2], "player2": self.participants[3] },
-                # { "player1": self.participants[0], "player2": self.participants[1], "winner": self.participants[1], "scores": [3, 7] },
-                # { "player1": self.participants[2], "player2": self.participants[3]},
-                # { "player1": self.participants[1]}
+                { "player1": self.participants[2], "player2": self.participants[3] }
             ]
             await self.restart_game()
 

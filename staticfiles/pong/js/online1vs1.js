@@ -132,13 +132,13 @@ export function online_1vs1()
 			width: width,
 			height: height
 		}));
-        render(matchMaking, document.body);
+        render(matchMaking, document.body.querySelector('.game-page').shadowRoot.querySelector('.game-page'));
     };
     socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
         console.table('data', data)
         if (data.type === "start") {
-            render(pongCanvas, document.body);
+            render(pongCanvas, document.body.querySelector('.game-page').shadowRoot.querySelector('.game-page'));
             initRenderer();
             table_config = data.table;
             paddle = data.paddle;
@@ -181,7 +181,7 @@ export function online_1vs1()
         }
         if (data.type === "game_over") {
             score = data.score;
-            render(GameOver(data.winner, score), document.body);
+            render(GameOver(data.winner, score), document.body.querySelector('.game-page').shadowRoot.querySelector('.game-page'));
         }
     };
     socket.onclose = () => {

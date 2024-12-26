@@ -140,7 +140,7 @@ export function tournamentMatch()
         const data = JSON.parse(e.data);
         console.table('data', data)
         if (data.type === "start") {
-            render(pongCanvas, document.body);
+            render(pongCanvas, document.body.querySelector('.game-page').shadowRoot.querySelector('.game-page'));
             initRenderer();
             table_config = data.table;
             paddle = data.paddle;

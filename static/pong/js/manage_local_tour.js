@@ -38,7 +38,7 @@ export function manageLocalTournament(participants, tournamentName) {
             align-items: center;
         }
     `;
-
+    const gamePage = document.body.querySelector('game-page');
     const countdownElement = createcountdown();
     const canvas = gameCanvas();
 
@@ -55,8 +55,6 @@ export function manageLocalTournament(participants, tournamentName) {
     let player1ScoreMesh, player2ScoreMesh;
     let player1 , player2;
     let renderer, controls;
-
-    const gui = new dat.GUI();
     
     const TableG = new THREE.Group();
     const FontLoader = new THREE.FontLoader();
@@ -148,20 +146,21 @@ export function manageLocalTournament(participants, tournamentName) {
                 tournamentBracket(
                     data.matches,
                     data.round,
-                    ws
+                    ws,
                 ),
-                document.body.querySelector('game-page').shadowRoot.querySelector('.game-page'));
+                gamePage.shadowRoot.querySelector('.game-page'));
         }
 
 
         if (data.type === "start") {
-            render(pongCanvas, document.body.querySelector('game-page').shadowRoot.querySelector('.game-page'));
+            render(pongCanvas, gamePage.shadowRoot.querySelector('.game-page'));
             table_config = data.table;
             paddle = data.paddle;
             player1_config = data.player1;
             player2_config = data.player2;
             ball_config = data.ball;
             score = data.score;
+            wsOpen = true;
 
 
 
@@ -192,15 +191,16 @@ export function manageLocalTournament(participants, tournamentName) {
             updateScore();
         }
         if (data.type === "game_over") {
-            // cancelAnimationFrame(animationId);
+            cancelAnimationFrame(animationId);
+            wsOpen = false;
             resetGame();
             render(
                 tournamentBracket(
                     data.matches,
                     data.round,
-                    ws
+                    ws,
                 ),
-                document.body.querySelector('game-page').shadowRoot.querySelector('.game-page'));
+                gamePage.shadowRoot.querySelector('.game-page'));
         }
     }
 
@@ -216,12 +216,12 @@ export function manageLocalTournament(participants, tournamentName) {
 
 
     
-    window.addEventListener("keydown", movePaddle);
-    window.addEventListener("keyup", stopPaddle);
+    document.addEventListener("keydown", movePaddle);
+    document.addEventListener("keyup", stopPaddle);
 
     function movePaddle(e)
     {
-        console.log("mooooovvveee");
+        console.log("event : ", e.key);
         if(e.key === 'ArrowLeft') player2Direction = -1;
         if(e.key === 'ArrowRight') player2Direction = 1;
         if(e.key === 'a') player1Direction = -1;
@@ -236,6 +236,7 @@ export function manageLocalTournament(participants, tournamentName) {
             player1Direction = 0;
     }
     window.addEventListener("resize", () => {
+        console.log("resize canvas");
         canvas.width = document.documentElement.clientWidth;
         canvas.height = document.documentElement.clientHeight;
 
@@ -460,11 +461,10 @@ export function manageLocalTournament(participants, tournamentName) {
 
     function sendPaddlePosition() {
 
-        socket.send(JSON.stringify({
+        ws.send(JSON.stringify({
             type: "update_paddle",
             player1_Direction : player1Direction,
-            player2_Direction : player2Direction,
-            mode: selectedMode,
+            player2_Direction : player2Direction
         }));
     }
 

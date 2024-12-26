@@ -280,7 +280,7 @@ function createCreateTournament(create_tournament, ws){
 
     back.addEventListener( 'click', () => {
         ws.close();
-        render(menu(), document.body);
+        render(menu(), document.body.querySelector('.game-page').shadowRoot.querySelector('.game-page'));
     });
 
     const fragment = document.createDocumentFragment();
@@ -375,7 +375,7 @@ function createJoinTournament(join_tournament, ws){
 
     back.addEventListener( 'click', () => {
         ws.close();
-        render(menu(), document.body);
+        render(menu(), document.body.querySelector('.game-page').shadowRoot.querySelector('.game-page'));
     });
 
 
@@ -442,13 +442,13 @@ export function tournamentPage(){
             console.log('joined');
             console.log(data);
             ws.close();
-            render(matchmakingPage(data.player, data.name), document.body);
+            render(matchmakingPage(data.player, data.name), document.body.querySelector('.game-page').shadowRoot.querySelector('.game-page'));
         }
         if (data.type === 'created'){
             console.log('created');
             console.log(data);
             ws.close();
-            render(matchmakingPage(data.creator, data.name), document.body);
+            render(matchmakingPage(data.creator, data.name), document.body.querySelector('.game-page').shadowRoot.querySelector('.game-page'));
         }
         if (data.type === 'error'){
             console.log('error');

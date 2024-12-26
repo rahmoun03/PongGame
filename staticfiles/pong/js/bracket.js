@@ -1,4 +1,3 @@
-import { local_1vs1 } from "./local_1vs1.js";
 import { render } from "./render.js";
 import { menu } from "./loby.js";
 
@@ -9,7 +8,7 @@ export function tournamentBracket(
         { player1: 'T3', player2: 'T4' },
     ],
     currentMatch = 1,
-    ws = null
+    ws = null,
 ) {
     const style = document.createElement('style');
     style.textContent = `
@@ -197,7 +196,15 @@ export function tournamentBracket(
             return matchContainer;
         }
         matchContainer.appendChild(createTeam(match.player1, match.scores?.[0] ?? null, match.player1 === match.winner));
-        matchContainer.appendChild(createTeam(match.player2, match.scores?.[1] ?? null, match.player2 === match.winner));
+        if (match.player2) {
+            matchContainer.appendChild(createTeam(match.player2, match.scores?.[1] ?? null, match.player2 === match.winner));	
+        }   
+        else{
+            const winner2 = createTeam("winner 2");
+            winner2.style.color = 'rgba(104, 104, 104, 0.7)';
+            matchContainer.appendChild(winner2);
+            return matchContainer;
+        }
 
         const connector = document.createElement('div');
         connector.className = `connector-${position}`;

@@ -47,13 +47,6 @@ class GamePage extends HTMLElement {
         shadow.appendChild(style);
         shadow.appendChild(main);
         render(menu(), main);
-        let participants = [
-            'ayoub',
-            'mohamed',
-            'amine',
-            'ali',
-        ];
-        render(manageLocalTournament(participants, "GALAXY"), main);
     }
 }
 

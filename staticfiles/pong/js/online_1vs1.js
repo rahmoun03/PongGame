@@ -3,38 +3,6 @@ import { GameOver } from "./gameOver.js";
 import { waitingPage } from "./waiting.js";
 import { menu } from "./loby.js";
 
-const style = document.createElement('style');
-style.textContent = `
-    canvas {
-        width: 100%;
-        height: 100%;
-    }
-    .countdown {
-        color: var(--red);
-        text-shadow: 2px 0 white, -2px 0 white, 0 2px white, 0 -2px white,
-            1px 1px white, -1px -1px white, 1px -1px white, -1px 1px white;
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        text-align: center;
-        place-content: center;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(255, 0, 0, 0);
-    }
-    .pongCanvas {
-        display: flex;
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        width: 100%;
-        height: 100%;
-        justify-content: center;
-        align-items: center;
-    }
-`;
 
 function gameCanvas() {
     const canvas = document.createElement('canvas');
@@ -55,6 +23,41 @@ function createcountdown() {
 
 export function online_1vs1()
 {
+    const gamePage = document.body.querySelector('game-page');
+
+    const style = document.createElement('style');
+    style.textContent = `
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+        .countdown {
+            color: var(--red);
+            text-shadow: 2px 0 white, -2px 0 white, 0 2px white, 0 -2px white,
+                1px 1px white, -1px -1px white, 1px -1px white, -1px 1px white;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            text-align: center;
+            place-content: center;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 0);
+        }
+        .pongCanvas {
+            display: flex;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+    `;
+
     const countdownElement = createcountdown();
     const canvas = gameCanvas();
     const matchMaking = waitingPage();
@@ -77,7 +80,6 @@ export function online_1vs1()
     let player1 , player2;
     let renderer, controls;
     
-    const gui = new dat.GUI();
     
     const TableG = new THREE.Group();
     const FontLoader = new THREE.FontLoader();
@@ -111,8 +113,8 @@ export function online_1vs1()
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        document.body.appendChild(renderer.domElement);
-        document.body.appendChild( stats.dom );
+        pongCanvas.appendChild(renderer.domElement);
+        pongCanvas.appendChild( stats.dom );
         controls = new THREE.OrbitControls( camera, renderer.domElement );
     }
     
@@ -134,14 +136,14 @@ export function online_1vs1()
 			width: width,
 			height: height
 		}));
-        render(matchMaking, document.body);
+        render(matchMaking, gamePage.shadowRoot.querySelector('.game-page'));
     };
     socket.onmessage = (e) => {
         const data = JSON.parse(e.data);
         console.table('data', data)
         if (data.type === "start") {
-            render(pongCanvas, document.body);
             initRenderer();
+            render(pongCanvas, gamePage.shadowRoot.querySelector('.game-page'));
             table_config = data.table;
             paddle = data.paddle;
             player1_config = data.player1;
@@ -154,7 +156,6 @@ export function online_1vs1()
             ballCreation();
             playerCreation();
             createScore();
-            guiControl();
 
             startCountdown(3, () => {
                 animate();
@@ -183,7 +184,7 @@ export function online_1vs1()
         }
         if (data.type === "game_over") {
             score = data.score;
-            render(GameOver(data.winner, score), document.body);
+            render(GameOver(data.winner, score), gamePage.shadowRoot.querySelector('.game-page'));
         }
     };
     socket.onclose = () => {
@@ -211,7 +212,8 @@ export function online_1vs1()
 
     cancel.addEventListener('click', () => {
         socket.close();
-        render(menu(), document.body);
+        console.log("canceling the game");
+        render(menu(), gamePage.shadowRoot.querySelector('.game-page'));
     });
 
 
@@ -432,15 +434,6 @@ export function online_1vs1()
             camera.position.set(0, 30, -35);
     }
 
-    function guiControl(){
-        gui.add(camera.position, "x",);
-        gui.add(camera.position, "y");  
-        gui.add(camera.position, "z");
-        gui.add(directionalLight, "visible").name("directional Light");
-        gui.add(grid, "visible").name("grid");
-        gui.add(axesHelper, "visible").name("helper");
-        gui.close();
-    }
 
     function animate ()
     {

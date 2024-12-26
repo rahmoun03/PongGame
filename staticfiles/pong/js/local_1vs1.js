@@ -20,6 +20,7 @@ function createcountdown() {
 
 export function local_1vs1()
 {
+    const gamePage = document.body.querySelector('game-page');
     const style = document.createElement('style');
     style.textContent = `
         canvas {
@@ -69,9 +70,7 @@ export function local_1vs1()
     let player1ScoreMesh, player2ScoreMesh;
     let player1 , player2;
     let renderer, controls;
-    
-    const gui = new dat.GUI();
-    
+        
     const TableG = new THREE.Group();
     const FontLoader = new THREE.FontLoader();
     
@@ -110,8 +109,8 @@ export function local_1vs1()
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        document.body.appendChild(renderer.domElement);
-        document.body.appendChild( stats.dom );
+        pongCanvas.appendChild(renderer.domElement);
+        pongCanvas.appendChild( stats.dom );
         controls = new THREE.OrbitControls( camera1, renderer.domElement );
     }
     
@@ -138,8 +137,8 @@ export function local_1vs1()
         const data = JSON.parse(e.data);
         console.table('data', data)
         if (data.type === "start") {
-            render(pongCanvas, document.body);
             initRenderer();
+            render(pongCanvas, gamePage.shadowRoot.querySelector('.game-page'));
             table_config = data.table;
             paddle = data.paddle;
             player1_config = data.player1;
@@ -151,7 +150,6 @@ export function local_1vs1()
             ballCreation();
             playerCreation();
             createScore();
-            guiControl();
 
             startCountdown(3, () => {
                 animate();
@@ -183,7 +181,7 @@ export function local_1vs1()
             score = data.score;
             cancelAnimationFrame(animationId);
             socket.close();
-            render(GameOver(data.winner, score), document.body);
+            render(GameOver(data.winner, score), gamePage.shadowRoot.querySelector('.game-page'));
         }
     };
     socket.onclose = () => {
@@ -424,18 +422,6 @@ export function local_1vs1()
         createScore();
     }
 
-    function guiControl(){
-        gui.add(camera1.position, "x",);
-        gui.add(camera1.position, "y");  
-        gui.add(camera1.position, "z");
-        gui.add(camera2.position, "x",).name("camera 2 x");
-        gui.add(camera2.position, "y").name("camera 2 y");  
-        gui.add(camera2.position, "z").name("camera 2 z");
-        gui.add(directionalLight, "visible").name("directional Light");
-        gui.add(grid, "visible").name("grid");
-        gui.add(axesHelper, "visible").name("helper");
-        gui.close();
-    }
 
     function animate ()
     {
@@ -455,7 +441,6 @@ export function local_1vs1()
             type: "update_paddle",
             player1_Direction : player1Direction,
             player2_Direction : player2Direction,
-            mode: selectedMode,
         }));
     }
 

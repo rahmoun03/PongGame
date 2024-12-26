@@ -11,67 +11,69 @@ let click = new Audio('static/pong/sound/menu-click-89198.mp3');
 
 
 
-// Attach styles
-const style = document.createElement('style');
-style.textContent = `
-  .menu {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    width : 100%;
-  }
-
-  .game-title {
-    position: absolute;
-    top: 50px;
-    display: flex;
-    font-family: "Pong War", "Freeware";
-    font-weight: bold;
-    font-size: 120px;
-    margin-bottom: 20px;
-    text-align: center;
-    color: var(--red);
-    text-shadow: 2px 0 white, -2px 0 white, 0 2px white, 0 -2px white,
-            1px 1px white, -1px -1px white, 1px -1px white, -1px 1px white;
-
-  }
-  .game-buttons-container {
-    left: 0px;
-    width: 20%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  button {
-    padding: 10px 10px;
-    width: 90%;
-    margin-bottom: 10px;
-    font-family: "Pong War";
-    letter-spacing: 2px;
-    color: white;
-    background-color: var(--red);
-    border: 1px solid white;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.5s ease;
-  }
-  
-  button.hidden {
-    display: none;
-  }
-
-  button:nth-child(6) {
-    background-color: var(--blue);
-  }
-
-  button:hover {
-    background-color: gray;
-}`;
 
 
 export function menu() {
+  // Attach styles
+  const style = document.createElement('style');
+  style.textContent = `
+    .menu {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      width : 100%;
+    }
+
+    .game-title {
+      position: absolute;
+      top: 50px;
+      display: flex;
+      font-family: "Pong War", "Freeware";
+      font-weight: bold;
+      font-size: 120px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: var(--red);
+      text-shadow: 2px 0 white, -2px 0 white, 0 2px white, 0 -2px white,
+              1px 1px white, -1px -1px white, 1px -1px white, -1px 1px white;
+
+    }
+    .game-buttons-container {
+      left: 0px;
+      width: 20%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    button {
+      padding: 10px 10px;
+      width: 90%;
+      margin-bottom: 10px;
+      font-family: "Pong War";
+      letter-spacing: 2px;
+      color: white;
+      background-color: var(--red);
+      border: 1px solid white;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.5s ease;
+    }
+    
+    button.hidden {
+      display: none;
+    }
+
+    button:nth-child(6) {
+      background-color: var(--blue);
+    }
+
+    button:hover {
+      background-color: gray;
+  }`;
+
+
   let  section = 0;
   const menu = document.createElement('div');
   menu.classList.add('menu');

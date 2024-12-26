@@ -1,65 +1,66 @@
 import { render } from "./render.js";
 import { menu } from "./loby.js";
-import { tournamentBracket } from "./bracket.js";
 import { manageLocalTournament } from "./manage_local_tour.js";
 
-const style = document.createElement('style');
-style.textContent = `
-.tournament {
-    display: flex;
-    flex-direction: column;
-    color: white;
-    font-family: "Pong War";
-    letter-spacing: 2px;
-    position: absolute;
-    width: 80%;
-    max-width: 600px;
-    max-height: 100%;
-    margin: 20px auto;
-    padding: 20px;
-    border-radius: 5px;
-    background: var(--blue);
-    transition: 0.5s ease;
-}
-.headers {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
-}
-.headers h1 {
-    color: var(--orange);
-    font-size: 24px;
-}
-.form {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    align-items: space-around;
-    gap: 10px;
-}
-input {
-    padding: 10px;
-    border: 1px solid var(--blue);
-    border-radius: 5px;
-    font-family: "Pong War";
-}
-button {
-    padding: 10px 20px;
-    font-family: "Pong War";
-    color: white;
-    background-color: var(--red);
-    border: 1px solid white;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.3s ease;
-}
-button:hover {
-    background-color: gray;
-}
-`;
+
 
 export function tournamentlocal() {
+
+    const style = document.createElement('style');
+    style.textContent = `
+    .tournament {
+        display: flex;
+        flex-direction: column;
+        color: white;
+        font-family: "Pong War";
+        letter-spacing: 2px;
+        position: absolute;
+        width: 80%;
+        max-width: 600px;
+        max-height: 100%;
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 5px;
+        background: var(--blue);
+        transition: 0.5s ease;
+    }
+    .headers {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .headers h1 {
+        color: var(--orange);
+        font-size: 24px;
+    }
+    .form {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        align-items: space-around;
+        gap: 10px;
+    }
+    input {
+        padding: 10px;
+        border: 1px solid var(--blue);
+        border-radius: 5px;
+        font-family: "Pong War";
+    }
+    button {
+        padding: 10px 20px;
+        font-family: "Pong War";
+        color: white;
+        background-color: var(--red);
+        border: 1px solid white;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: 0.3s ease;
+    }
+    button:hover {
+        background-color: gray;
+    }
+    `;
     const tournament = document.createElement('div');
     tournament.classList.add('tournament');
 
@@ -102,8 +103,9 @@ export function tournamentlocal() {
     backButton.type = 'button';
 
     // Event listeners
-    startButton.addEventListener('click', () => {
-        // event.preventDefault();
+    startButton.addEventListener('click', (event) => {
+        console.log('start tournament');
+        event.preventDefault(); 
         const tournamentName = tournamentNameInput.value.trim();
         const participants = participantInputs.map(input => input.value.trim());
 
